@@ -2,7 +2,9 @@
   <div class="confer">
     <m-header></m-header>
     <div class="contanier">
-      <router-view></router-view>
+      <keep-alive>
+        <router-view></router-view>
+      </keep-alive>
     </div>
     <m-footer @routerChange="routerChange"></m-footer>
     <modal ref="modal">
@@ -59,6 +61,18 @@
     margin: 0
     background: $color-base-background
     .contanier
-      padding: 0 100px
-      padding-bottom: 120px
+      position: absolute
+      top: 60px
+      bottom: 115px
+      left: $global-gap
+      right: $global-gap
+      @media screen and (min-width: 1367px) and (max-width: 1480px)
+        left: $global-gap
+        right: $global-gap
+      @media screen and (min-width: 1481px) and (max-width: 1919px)
+        left: $global-gap-x
+        right: $global-gap-x
+      @media screen and (min-width: 1920px)
+        left: $global-gap-xx
+        right: $global-gap-xx
 </style>

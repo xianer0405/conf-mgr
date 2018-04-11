@@ -1,5 +1,5 @@
 <template>
-  <div ref="wrapper">
+  <div class="scroll" ref="wrapper">
     <slot></slot>
   </div>
 </template>
@@ -114,4 +114,11 @@
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
+  .scroll
+    position: relative
+    padding-right: 20px
+    height: 100%
+    overflow: hidden
+    background: #fff
+    cursor: pointer
 </style>

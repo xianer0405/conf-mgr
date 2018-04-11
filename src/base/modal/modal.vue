@@ -45,7 +45,7 @@
       },
       autoHideTime: {
         type: Number,
-        default: 2000 /* 单位： 毫秒 */
+        default: 1500 /* 单位： 毫秒 */
       }
       /* ,
       position: {
@@ -123,7 +123,8 @@
   .modal
     text-align: center
     font-size: $font-size-medium
-    position: absolute
+    position: fixed
+    z-index: 3
     top: 0
     left: 0
     right: 0
@@ -131,7 +132,7 @@
     margin-top: -110px
     text-align: center
     font-size: $font-size-medium
-    background-color: rgba(150,150,150, 0.1)
+    background-color: rgba(150,150,150, 0.4)
     &.in-enter-active, &.in-leave-active
       transition: all .3s ease
     &.in-enter, &.in-leave-to

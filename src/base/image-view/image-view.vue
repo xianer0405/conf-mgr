@@ -1,41 +1,51 @@
 <template>
   <div class="image-view" ref="imageView">
     <div class="img-wrapper" ref="imgWrapper">
-      <img src="../../common/image/1.jpg" alt="">
+      <img :src='imageUrl' alt="">
     </div>
-    <div class="icons-wrapper">
-      <i class="icon icon-people"></i>
-      <i class="icon icon-shezhi"></i>
-      <i class="icon icon-xiaoxi"></i>
-      <i class="icon icon-record"></i>
+    <div class="icons-wrapper" v-show="showIcons.length">
+      <i class="icon"
+         :class="item"
+         v-for="(item, index) in showIcons"
+         :key="index"
+         @click="iconClick(item)"></i>
     </div>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+
   export default {
     props: {
-      width: {
-        type: Number,
-        default: 300
-      },
-      height: {
-        type: Number,
-        default: 200
+      kid: {
+        type: String,
+        default: ''
       },
       imageUrl: {
         type: String,
-        default: '../../common/image/1.jpg'
+        default: require('../../common/image/2.jpg')
+      },
+      showIcons: {
+        type: Array,
+        default: function() {
+          return ['icon-volume-o']
+        }
       }
     },
     methods: {
-      _init() {
-        // const wrapperWidth = this.$refs.imgWrapper.clientWidth
-        // this.$refs.imgWrapper.firstChild.style.width = wrapperWidth + 'px'
+      iconClick(icon) {
+        const param = {iconType: icon, kid: this.kid}
+        console.log(param)
+        this.$emit('iconClick', param)
+      },
+      _initImage() {
+        // const imageObj = require(this.imageUrl)
+        // console.log(imageObj)
+        // console.log(this.imageUrl)
       }
     },
     mounted () {
-      this._init()
+      this._initImage()
     }
   }
 </script>
@@ -61,6 +71,8 @@
       font-size: 16px
       background: #F3F5FD
       cursor: pointer
+      &:hover
+        background: #f3f5fd - 5%
       .icon
         padding: 0 5px
         &:hover

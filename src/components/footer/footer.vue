@@ -72,11 +72,20 @@
   .footer
     position: fixed
     bottom: 0
-    left: 100px
-    right: 100px
+    left: $global-gap = 100px
+    right: $global-gap = 100px
     min-width: 600px
     border-top: 3px solid $color-border-l
     background: $color-base-background
+    @media screen and (min-width: 1367px) and (max-width: 1480px)
+      left: $global-gap
+      right: $global-gap
+    @media screen and (min-width: 1481px) and (max-width: 1919px)
+      left: $global-gap-x
+      right: $global-gap-x
+    @media screen and (min-width: 1920px)
+      left: $global-gap-xx
+      right: $global-gap-xx
     .menu
       margin: 15px 0
       display: flex
