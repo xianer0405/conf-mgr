@@ -1,0 +1,142 @@
+<template>
+  <footer class='footer'>
+    <ul class='menu'>
+      <router-link tag='li'
+                   :key='index'
+                   :to='item.path'
+                   class='item'
+                   @click.native="selectItem(item)"
+                   v-for='(item,index) in menuList'>
+        <span class='flag'></span>
+        <div class='icon-wrapper'>
+          <i class='icon' :class='item.iconClass'></i>
+        </div>
+        <span class='text'>{{item.text}}</span>
+      </router-link>
+    </ul>
+  </footer>
+</template>
+
+<script type='text/ecmascript-6'>
+  export default {
+    data() {
+      return {
+        menuList: [ {
+          path: '/create',
+          text: '创建新转播',
+          iconClass: 'icon-xinjianhuiyi'
+        }, {
+          path: '/one2one',
+          text: '一对一转播',
+          iconClass: 'icon-people'
+        }, {
+          path: '/one2many',
+          text: '一对多转播',
+          iconClass: 'icon-duoren'
+        }, {
+          path: '/many2many',
+          text: '多对多转播',
+          iconClass: 'icon-qunzuduoren'
+        }, {
+          path: '/record',
+          text: '录像管理',
+          iconClass: 'icon-record',
+          disabled: true
+        }, {
+          path: '/push2third',
+          text: '推送第三方',
+          iconClass: 'icon-upload',
+          disabled: true
+        }, {
+          path: '/link2or1',
+          text: '连接OR1.NET',
+          iconClass: 'icon-yun',
+          disabled: true
+        }
+        ]
+      }
+    },
+    methods: {
+      selectItem(item) {
+        console.log(JSON.stringify(item))
+        this.$emit('routerChange', item)
+        console.log('emit')
+      }
+    }
+  }
+</script>
+
+<style scoped lang='stylus' rel='stylesheet/stylus'>
+  @import '~common/stylus/variable.styl'
+
+  .footer
+    position: fixed
+    bottom: 0
+    left: 100px
+    right: 100px
+    min-width: 600px
+    border-top: 3px solid $color-border-l
+    background: $color-base-background
+    .menu
+      margin: 15px 0
+      display: flex
+      justify-content: space-between
+      height: 80px;
+      .item
+        position: relative
+        display: flex
+        flex-direction: column
+        align-content: center
+        margin: 0 25px
+        min-width: 100px
+        height: 100%;
+        text-align: center
+        cursor: pointer
+        .icon-wrapper
+          flex: 1;
+          margin-top: 15px
+          .icon
+            padding: 12px
+            font-size: $font-size-large-icon
+            color: $color-text-d
+            background-color: $color-normal-background
+            border: 1px solid $color-border-d
+            border-radius: 100%
+        .text
+          font-size: $font-size-medium-x
+          font-weight: 500
+          color: $color-text-d
+        .flag
+          position: absolute
+          top: -18px
+          left: 50%
+          margin-left: -25px
+          &:before
+            display: none
+            content: ''
+            position: absolute
+            top: 3px
+            left: 20px
+            width: 1px
+            height: 5px
+            border: 4px solid transparent
+            border-top: 7px solid #3c78e6
+            transition: all 0.3s ease
+        .text, .icon, .flag
+          transition: all 0.3s ease
+        &.router-link-active, &:hover
+          .icon
+            color: $color-text
+            background-color: $color-highlight-background
+            border: 1px solid transparent
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6)
+          .text
+            color: $color-text-highlight
+        &.router-link-active
+          .flag
+            width: 50px
+            height: 3px
+            background: #3c78e6
+            &:before
+              display: inline-block
+</style>
