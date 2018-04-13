@@ -84,7 +84,7 @@
           click: this.click,
           bounce: this.bounce,
           scrollbar: {
-            fade: false,
+            fade: true,
             interactive: true
           },
           mouseWheel: {

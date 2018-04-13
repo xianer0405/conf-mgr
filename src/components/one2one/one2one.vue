@@ -1,17 +1,22 @@
 <template>
   <div class="one-to-one">
     <div class="conf-list">
-      <h1 class='title'>一对一转播列表</h1>
+      <h1 class='title'>一对一转播列表({{totalCount}})</h1>
       <conf-list :currentIndex="currIndex" :confs="confList" @select="selectChange"></conf-list>
     </div>
     <div class="conf-detail">
-      <h1 class='title'>转播-{{currConf ? currConf.name : '未选择'}}</h1>
-      <div class="members" v-show="currConf">
-        <div class="member-wrapper">
-          <image-view :showIcons="showIcons" :imageUrl="currConf.imageUrl1"></image-view>
+      <h1 class='title'>转播-{{currConf ? currConf.confName : '未选择'}}</h1>
+      <div class="members" v-show="currConf && !confReady">
+        <div class="loading-container">
+          <loading title="正在加载会议状态..."></loading>
         </div>
-        <div class="member-wrapper">
-          <image-view :showIcons="showIcons" :imageUrl="currConf.imageUrl2"></image-view>
+      </div>
+      <div class="members" v-show="currConf && confReady">
+        <div class="member-wrapper" v-if="confReady">
+          <image-view :kid="confMemberIds[0]" @iconClick="memberOper" :showIcons="showIcons" :imageUrl="confMembers[confMemberIds[0]].attachment.fileUrl"></image-view>
+        </div>
+        <div class="member-wrapper" v-if="confReady">
+          <image-view :kid="confMemberIds[1]" @iconClick="memberOper" :showIcons="showIcons" :imageUrl="confMembers[confMemberIds[1]].attachment.fileUrl"></image-view>
         </div>
         <div class="conf-oper" @click.stop="endConf">
           <i class="icon icon-finish"></i>
@@ -28,20 +33,50 @@
 
 <script type="text/ecmascript-6">
   import Modal from 'base/modal/modal'
+  import Loading from 'base/loading/loading'
   import ConfList from 'components/conf-list/conf-list'
   import ImageView from 'base/image-view/image-view'
-  import {searchDevice} from 'api/device'
-  const DEFAULT_CURRINDEX = 0
+  import {loadConfs} from 'api/conf'
+  import {loadDevices} from 'api/device'
+
   export default {
     data() {
       return {
         currConf: null,
         currIndex: -1,
-        confList: [],
-        showIcons: ['icon-mic', 'icon-volume-o']
+        confReady: false,
+        confList: null,
+        confMembers: null,
+        confMemberIds: [],
+        totalCount: 0,
+        showIcons: ['icon-mic', 'icon-volume-o'],
+        defaultImageUrl: require('../../common/image/1.jpg')
+      }
+    },
+    computed: {
+      showIcon2() {
+        if(this.currConf) {
+          const confState = this.currConf.confState
+          
+        } else {
+          return []
+        }
       }
     },
     methods: {
+      memberOper(param) {
+        this.$refs.modal.info(JSON.stringify(param))
+        const confKey = this.currConf.confId
+        const deviceId = param.kid
+        const type = param.iconType === this.showIcons[0] ? 1 : 2
+      },
+      initConfState() {
+        this.confReady = false
+        this.confMemberIds = this.currConf.members.split(',')
+        this.currConf = this.confList[this.currIndex]
+        const deviceIds = this.currConf.members
+        this._loadConfMembers(deviceIds)
+      },
       endConf() {
         this.$refs.modal.info('操作成功!')
       },
@@ -49,37 +84,45 @@
         this.currIndex = index
         console.log(this.currIndex)
       },
-      _loadConfList() {
-        searchDevice({name: '设备'}).then((res) => {
+      _loadConfMembers(deviceIds) {
+        loadDevices({deviceIds}).then((res) => {
           if (res.success) {
-            this.confList = res.bizData.list
-            if (this.confList.length) {
-              this.selectChange(DEFAULT_CURRINDEX)
-            }
+            this.confMembers = res.bizData.map
+            this.confReady = true
+            console.log(this.confMembers)
+          }
+        })
+      },
+      _loadConfList() {
+        const param = {confType: 1, skip: 0, limit: 10}
+        loadConfs(param).then((res) => {
+          if (res.success) {
+            console.log(res)
+            this.confList = res.bizData.page.list
+            this.totalCount = res.bizData.page.total
           }
         })
       }
     },
     watch: {
       currIndex() {
-        this.currConf = this.confList[this.currIndex]
-        /* mock code */
-        if (this.currIndex % 2 === 0) {
-          this.currConf.imageUrl1 = require('../../common/image/1.jpg')
-          this.currConf.imageUrl2 = require('../../common/image/2.jpg')
+        if (this.currIndex >= 0) {
+          this.initConfState()
         } else {
-          this.currConf.imageUrl1 = require('../../common/image/kobe.jpg')
-          this.currConf.imageUrl2 = require('../../common/image/kobe.gif')
+          this.currConf = null
         }
       }
     },
     created() {
-      this._loadConfList()
+      setTimeout(() => {
+        this._loadConfList()
+      }, 1000)
     },
     components: {
       ConfList,
       ImageView,
-      Modal
+      Modal,
+      Loading
     }
   }
 </script>
@@ -99,6 +142,7 @@
       font-size: $font-size-medium-x
       font-weight: bolder
       vertical-align: middle
+      no-wrap()
     .conf-list
       float: left
       height: 80%
@@ -106,9 +150,10 @@
       margin-right: 100px
       clear-fix()
     .conf-detail
+      position: relative
+      overflow:hidden
       height: 80%
       padding-bottom: 60px
-      overflow:hidden
       .members
         overflow: auto
         height: 100%
@@ -118,15 +163,22 @@
         text-align: center
         .conf-oper
           @extends $conf-oper
+          margin-top: 60px
         .member-wrapper
           display: inline-block
           width: 300px
+          height: 160px
           &:first-child
             margin-right: 30px
         .tip
           margin-top: 20%
           font-size: 20px
           color: #ccc
+      .loading-container
+        position: absolute
+        width: 100%
+        top: 50%
+        transform: translateY(-50%)
   @media screen and (max-width: 1314px)
     .one-to-one
       .conf-detail

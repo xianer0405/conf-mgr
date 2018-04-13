@@ -1,36 +1,37 @@
 <template>
-  <scroll class="wrapper" :data="confs" :refreshDelay="refreshDelay">
-    <ul class="conf-list" v-show="confs.length">
+  <scroll class="listview" :data="confs" :refreshDelay="refreshDelay">
+    <ul class="conf-list" v-show="confs">
       <li class="item"
           :class="{active: currentIndex === index}"
           :key="index"
           v-for="(item, index) in confs"
           @click="selectItem(index)">
-        <span class="text">{{item.name}}</span>
+        <span :title="item.confName" class="text">{{item.confName}}</span>
         <i class="icon icon-enter"></i>
       </li>
-      <li class="item" v-show="!confs.length">当前无转播记录</li>
     </ul>
-    <ul class="conf-list" v-show="!confs.length">
+    <ul class="conf-list" v-show="confs && !confs.length">
       <li class="item">当前无转播记录</li>
     </ul>
+    <div v-show="!confs" class="loading-container">
+      <loading></loading>
+    </div>
   </scroll>
 </template>
 
 <script type="text/ecmascript-6">
   import Scroll from 'base/scroll/scroll'
+  import Loading from 'base/loading/loading'
 
   export default {
     props: {
       confs: {
         type: Array,
-        default: function() {
-          return []
-        }
+        default: null
       },
       currentIndex: {
         type: Number,
-        default: 0
+        default: -1
       }
     },
     data() {
@@ -44,24 +45,35 @@
       }
     },
     components: {
-      Scroll
+      Scroll,
+      Loading
     }
   }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable.styl"
+  @import "~common/stylus/mixin"
 
-  .conf-list
-    padding: 10px 30px 10px 20px
+  .listview
+    position: relative
     background: #fff
-    .item
-      padding-left: 10px
-      margin: 10px 0
-      line-height: 36px
-      background: #F3F5FD
-      &:hover, &.active
-        background: #1AE47D
+    .conf-list
+      padding: 10px 20px 10px 20px
+      background: #fff
+      .item
+        padding-left: 10px
+        margin: 10px 0
+        line-height: 36px
+        background: #F3F5FD
+        no-wrap()
+        &:hover, &.active
+          background: #1AE47D
+    .loading-container
+      position: absolute
+      width: 100%
+      top: 50%
+      transform: translateY(-50%)
   .bscroll-vertical-scrollbar
     top: 15px !important
     bottom: 15px !important

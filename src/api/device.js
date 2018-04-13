@@ -8,3 +8,10 @@ export function searchDevice(param) {
     return Promise.resolve(res.data)
   })
 }
+
+export function loadDevices(param) {
+  const url = '/apis/api/device/listByIds'
+  return axios.post(url, qs.stringify(param)).then((res) => {
+    return Promise.resolve(res.data)
+  })
+}

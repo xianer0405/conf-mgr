@@ -57,12 +57,15 @@
     position: relative
     display: inline-block
     width: 100%
+    height: 100%;
     margin-bottom: 30px
     background: #F3F5FD
     .img-wrapper
       width: 100%
+      height: 100%;
       img
         width: 100%
+        height: 100%;
     .icons-wrapper
       position: absolute
       width: 100%
