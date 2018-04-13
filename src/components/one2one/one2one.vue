@@ -54,26 +54,19 @@
       }
     },
     computed: {
-      showIcon2() {
-        if(this.currConf) {
-          const confState = this.currConf.confState
-          
-        } else {
-          return []
-        }
-      }
     },
     methods: {
       memberOper(param) {
         this.$refs.modal.info(JSON.stringify(param))
-        const confKey = this.currConf.confId
+        /* const confId = this.currConf.confId
         const deviceId = param.kid
-        const type = param.iconType === this.showIcons[0] ? 1 : 2
+        const type = param.iconType === this.showIcons[0] ? 1 : 2 */
       },
       initConfState() {
         this.confReady = false
-        this.confMemberIds = this.currConf.members.split(',')
         this.currConf = this.confList[this.currIndex]
+        console.log(this.currConf)
+        this.confMemberIds = this.currConf.members.split(',')
         const deviceIds = this.currConf.members
         this._loadConfMembers(deviceIds)
       },
