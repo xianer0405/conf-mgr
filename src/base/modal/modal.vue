@@ -8,20 +8,20 @@
             <i class="icon icon-close" v-if="modalType !== 1"></i>
           </div>
         </div>
-        <div class="content" v-if="modalType === 1">
+        <div class="content-wrapper" v-if="modalType === 1">
           <i class="icon" :class="iconCls"></i>
-          <div class="content-wrapper tip-wrapper">
+          <div class="content tip">
             <slot>{{message}}</slot>
           </div>
         </div>
-        <div class="content" v-if="modalType !== 1">
-          <div class="content-wrapper">
+        <div class="content-wrapper" v-if="modalType !== 1">
+          <div class="content">
             <slot>提示消息</slot>
           </div>
         </div>
         <div class="bottom" v-if="modalType !== 1">
-          <span class="btn cancel" v-if="modalType === 3" @click.stop="hide">取&nbsp;&nbsp;消</span>
-          <span class="btn submit" @click.stop="hide">确&nbsp;&nbsp;认</span>
+          <span class="btn cancel" v-if="modalType === 3" @click.stop="cancel">取&nbsp;&nbsp;消</span>
+          <span class="btn submit" @click.stop="confirm">确&nbsp;&nbsp;认</span>
         </div>
       </div>
     </div>
@@ -66,6 +66,14 @@
       }
     },
     methods: {
+      cancel() {
+        this.$emit('cancel')
+        this.showFlag = false
+      },
+      confirm() {
+        this.$emit('confirm')
+        this.showFlag = false
+      },
       show(msg) {
         if (msg) {
           this.message = msg
@@ -91,8 +99,9 @@
         this.show(msg)
       },
       hide() {
-        this.messageType = 1
+        this.$emit('cancel')
         this.showFlag = false
+        this.messageType = 1
       },
       hideByClickShadow() {
         if (this.modalType === 1) {
@@ -105,7 +114,6 @@
         }, this.autoHideTime)
       },
       _initModal() {
-
       }
     },
     mounted () {
@@ -141,7 +149,7 @@
       position: absolute
       top: 50%
       left: 50%
-      min-width: 100px
+      min-width: 260px
       min-height: 40px
       transform: translate3d(-50%, -50%, 0)
       background-color: #fff
@@ -159,22 +167,24 @@
           line-height: 36px
           padding: 2px
           cursor:pointer
-      .content
+      .content-wrapper
         position: relative
         min-height:60px
         line-height: 60px
         padding: 10px 20px
         text-align: center
-        .content-wrapper
+        .content
           margin-left: 18px
-          &.tip-wrapper
-            text-align: left
-            text-ellipsis()
+        .tip
+          display: inline-block;
+          margin-left: 30px;
+          vertical-align: middle;
+          text-align: center
+          text-ellipsis()
         .icon
           position: absolute
           font-size: 18px
           top:50%
-          left: 10px
           transform: translate3d(0, -50%, 0)
           color: #3c78e6
       .bottom

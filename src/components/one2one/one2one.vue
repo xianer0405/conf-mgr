@@ -13,10 +13,16 @@
       </div>
       <div class="members" v-show="currConf && confReady">
         <div class="member-wrapper" v-if="confReady">
-          <image-view :kid="confMemberIds[0]" @iconClick="memberOper" :showIcons="showIcons" :imageUrl="confMembers[confMemberIds[0]].attachment.fileUrl"></image-view>
+          <image-view :kid="confMemberIds[0]"
+                      @iconClick="memberOper"
+                      :showIcons="showIconsArray[0]"
+                      :imageUrl="confMembers[confMemberIds[0]].attachment.fileUrl"></image-view>
         </div>
         <div class="member-wrapper" v-if="confReady">
-          <image-view :kid="confMemberIds[1]" @iconClick="memberOper" :showIcons="showIcons" :imageUrl="confMembers[confMemberIds[1]].attachment.fileUrl"></image-view>
+          <image-view :kid="confMemberIds[1]"
+                      @iconClick="memberOper"
+                      :showIcons="showIconsArray[1]"
+                      :imageUrl="confMembers[confMemberIds[1]].attachment.fileUrl"></image-view>
         </div>
         <div class="conf-oper" @click.stop="endConf">
           <i class="icon icon-finish"></i>
@@ -36,8 +42,9 @@
   import Loading from 'base/loading/loading'
   import ConfList from 'components/conf-list/conf-list'
   import ImageView from 'base/image-view/image-view'
-  import {loadConfs} from 'api/conf'
+  import {loadConfs, endConf, volumeMute} from 'api/conf'
   import {loadDevices} from 'api/device'
+  import {IMAGE_ICONS} from 'common/js/config'
 
   export default {
     data() {
@@ -50,17 +57,59 @@
         confMemberIds: [],
         totalCount: 0,
         showIcons: ['icon-mic', 'icon-volume-o'],
-        defaultImageUrl: require('../../common/image/1.jpg')
+        showIconsArray: [],
+        defaultImageUrl: require('../../common/image/1.jpg'),
+        memberOperFlag: false
       }
     },
     computed: {
     },
     methods: {
+      endConf() {
+        const {confId, confType} = this.currConf
+        endConf({confId, confType}).then((res) => {
+          if (res.success) {
+            this.$refs.modal.info('操作成功!')
+            this._loadConfList()
+            this._resetCurrConf()
+          } else {
+            this.$refs.modal.info('失败成功!')
+          }
+        })
+      },
       memberOper(param) {
-        this.$refs.modal.info(JSON.stringify(param))
-        /* const confId = this.currConf.confId
+        if (this.memberOperFlag) {
+          return false
+        }
+        this.memberOperFlag = true
+        const confId = this.currConf.confId
         const deviceId = param.kid
-        const type = param.iconType === this.showIcons[0] ? 1 : 2 */
+        const type = param.iconType === IMAGE_ICONS.VOL_IN || param.iconType === IMAGE_ICONS.VOL_IN_OFF ? 1 : 2 // 表示输入或输出
+        const mute = param.iconType === IMAGE_ICONS.VOL_IN || param.iconType === IMAGE_ICONS.VOL_OUT // 是否静音
+        const volumeReq = {confId, deviceId, type, mute}
+        volumeMute(volumeReq).then((res) => {
+          if (res.success) {
+            let newIcon = this._reverseIcon(param)
+            console.log('newIcon = ' + newIcon)
+            const newShowIcons = this.showIcons.slice()
+            console.log(this.showIconsArray)
+            newShowIcons[param.iconIdx] = newIcon
+            console.log('newShowIcons = ' + newShowIcons)
+            // 数组数据修改的模式
+            if (volumeReq.deviceId === this.confMemberIds[0]) {
+              this.$set(this.showIconsArray, 0, newShowIcons)
+            } else {
+              this.$set(this.showIconsArray, 1, newShowIcons)
+            }
+            console.log(this.showIconsArray)
+            this.$refs.modal.info('操作成功!')
+          } else {
+            this.$refs.modal.error('操作失败!')
+          }
+        }).finally(() => {
+          console.log('volumeMute finally ')
+          this.memberOperFlag = false
+        })
       },
       initConfState() {
         this.confReady = false
@@ -68,14 +117,37 @@
         console.log(this.currConf)
         this.confMemberIds = this.currConf.members.split(',')
         const deviceIds = this.currConf.members
+        this._initShowIcons()
         this._loadConfMembers(deviceIds)
-      },
-      endConf() {
-        this.$refs.modal.info('操作成功!')
       },
       selectChange(index) {
         this.currIndex = index
         console.log(this.currIndex)
+      },
+      _reverseIcon(iconParam) {
+        let newIcon = ''
+        if (iconParam.iconType === IMAGE_ICONS.VOL_IN) {
+          newIcon = IMAGE_ICONS.VOL_IN_OFF
+        }
+        if (iconParam.iconType === IMAGE_ICONS.VOL_IN_OFF) {
+          newIcon = IMAGE_ICONS.VOL_IN
+        }
+        if (iconParam.iconType === IMAGE_ICONS.VOL_OUT) {
+          newIcon = IMAGE_ICONS.VOL_OUT_OFF
+        }
+        if (iconParam.iconType === IMAGE_ICONS.VOL_OUT_OFF) {
+          newIcon = IMAGE_ICONS.VOL_OUT
+        }
+        return newIcon
+      },
+      _resetCurrConf() {
+        this.currIndex = -1
+        this.confReady = false
+        this.currConf = null
+      },
+      _initShowIcons() {
+        this.showIconsArray[0] = [...this.showIcons]
+        this.showIconsArray[1] = [...this.showIcons]
       },
       _loadConfMembers(deviceIds) {
         loadDevices({deviceIds}).then((res) => {
@@ -87,10 +159,9 @@
         })
       },
       _loadConfList() {
-        const param = {confType: 1, skip: 0, limit: 10}
+        const param = {confType: 1, skip: 0, limit: 20}
         loadConfs(param).then((res) => {
           if (res.success) {
-            console.log(res)
             this.confList = res.bizData.page.list
             this.totalCount = res.bizData.page.total
           }
@@ -107,6 +178,11 @@
       }
     },
     created() {
+      setTimeout(() => {
+        this._loadConfList()
+      }, 1000)
+    },
+    activated () {
       setTimeout(() => {
         this._loadConfList()
       }, 1000)
@@ -131,7 +207,7 @@
     color: #333
     font-size: $font-size-medium
     .title
-      line-height: 60px
+      line-height: 50px
       font-size: $font-size-medium-x
       font-weight: bolder
       vertical-align: middle

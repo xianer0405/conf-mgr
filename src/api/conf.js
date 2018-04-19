@@ -26,6 +26,23 @@ export function volumeMute(reqParam) {
   return httpRequest(url, reqParam)
 }
 
+export function deleteMember(reqParam) {
+  const url = '/apis/api/confer/remove'
+  // 参数必须通过qs.stringify()转化后才能被后台识别
+  return httpRequest(url, reqParam)
+}
+
+export function addMembers(reqParam) {
+  const url = '/apis/api/confer/join'
+  // 参数必须通过qs.stringify()转化后才能被后台识别
+  return httpRequest(url, reqParam)
+}
+
+export function endConf(reqParam) {
+  const url = '/apis/api/confer/end'
+  return httpRequest(url, reqParam)
+}
+
 function httpRequest(url, reqParam) {
   return axios.post(url, qs.stringify(reqParam)).then((res) => {
     return Promise.resolve(res.data)

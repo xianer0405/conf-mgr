@@ -8,7 +8,7 @@
          :class="item"
          v-for="(item, index) in showIcons"
          :key="index"
-         @click="iconClick(item)"></i>
+         @click="iconClick(item, index)"></i>
     </div>
   </div>
 </template>
@@ -18,8 +18,8 @@
   export default {
     props: {
       kid: {
-        type: String,
-        default: ''
+        type: [Number],
+        default: 0
       },
       imageUrl: {
         type: String,
@@ -33,10 +33,13 @@
       }
     },
     methods: {
-      iconClick(icon) {
-        const param = {iconType: icon, kid: this.kid}
+      iconClick(icon, index) {
+        const param = {iconIdx: index, iconType: icon, kid: this.kid}
         console.log(param)
         this.$emit('iconClick', param)
+      },
+      updateShowIcons(newShowIcons) {
+        this.showIcons = newShowIcons.slice()
       },
       _initImage() {
         // const imageObj = require(this.imageUrl)

@@ -329,7 +329,7 @@
           input
             vertical-align: middle
     .title
-      line-height: 60px
+      line-height: 50px
       font-size: $font-size-medium-x
       font-weight: 600
       vertical-align: middle
