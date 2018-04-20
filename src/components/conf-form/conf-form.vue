@@ -53,7 +53,7 @@
                 :key='index'
                 v-for='(item, index) in searchedList'>
                 <span class='name'>{{item.name}}</span>
-                <i v-if="item.id > 0" class='icon icon-add' @click='selectSearchedItem(item)'></i>
+                <i v-if="item.id > 0" class='icon' :class="searchedItemIconCls(item)" @click='selectSearchedItem(item)'></i>
             </li>
           </ul>
         </div>
@@ -181,15 +181,28 @@
         copyedSelectedMemebers.unshift(newSource)
         this.selectedMemebers = copyedSelectedMemebers
       },
-      selectSearchedItem(item) {
-        if (this.confType === CONF_TYPES.ONE2ONE && this.selectedMemebers.length === 2) {
-          return
+      searchedItemIconCls(item) {
+        if (this.selectedMemebers.length) {
+          const fIndex = this.selectedMemebers.findIndex((value) => {
+            return item.id === value.id
+          })
+          if (fIndex !== -1) {
+            return 'icon-radio-checked'
+          }
         }
-        let index = this.selectedMemebers.findIndex((value) => {
+        return 'icon-add'
+      },
+      selectSearchedItem(item) {
+        const index = this.selectedMemebers.findIndex((value) => {
           return item.id === value.id
         })
         if (index === -1) {
+          if (this.confType === CONF_TYPES.ONE2ONE && this.selectedMemebers.length === 2) {
+            return
+          }
           this.selectedMemebers.push(item)
+        } else {
+          this.selectedMemebers.splice(index, 1)
         }
       },
       delItem(index) {
@@ -358,6 +371,8 @@
         &.icon-add
           font-size: 16px
           margin-left: 6px
+        &.icon-radio-checked
+          color: $color-text-highlight
         &.icon-record
           color: #3c78e6
         &.icon-record, &.icon-people

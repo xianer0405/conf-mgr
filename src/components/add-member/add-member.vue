@@ -63,10 +63,10 @@
       iconClass(item) {
         if (this.selectedMemebers.length) {
           const fIndex = this._findIndex(item)
-          if(fIndex !== -1) {
+          if (fIndex !== -1) {
             return 'icon-radio-checked'
-          } 
-        } 
+          }
+        }
         return 'icon-add'
       },
       confirm() {
@@ -115,7 +115,7 @@
       },
       selectSearchedItem(selectedItem, index) {
         const fIndex = this._findIndex(selectedItem)
-        if(fIndex === -1) {
+        if (fIndex === -1) {
           this.selectedMemebers.push(selectedItem)
         } else {
           this.selectedMemebers.splice(fIndex, 1)

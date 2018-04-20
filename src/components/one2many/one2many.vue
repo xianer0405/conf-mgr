@@ -16,7 +16,7 @@
           <div class="member-wrapper">
             <image-view @iconClick="memberOper" ref="sourceImageView"  :kid="soureMember.id" :showIcons="showIcons" :imageUrl="soureMember.attachment ? soureMember.attachment.fileUrl : defaultImageUrl"></image-view>
           </div>
-          <div class="conf-oper" @click.stop="endConf">
+          <div class="conf-oper" @click.stop="openEndConfModal">
             <i class="icon icon-finish"></i>
             <h1 class="text">结束转播</h1>
           </div>
@@ -44,6 +44,9 @@
     <modal ref="modal"></modal>
     <modal @confirm="deleteMember" @cancel="cancelDelete" :modalType="3" :autoHide="false" ref="deleteMemberModal">
       <p>确认删除该成员吗?</p>
+    </modal>
+    <modal @confirm="endConf" :modalType="3" :autoHide="false" ref="endConfModal">
+      <p>确认结束当前转播吗?</p>
     </modal>
   </div>
 </template>
@@ -138,6 +141,9 @@
           console.log('volumeMute finally ')
           that.memberOperFlag = false
         })
+      },
+      openEndConfModal() {
+        this.$refs.endConfModal.show()
       },
       endConf() {
         const {confId, confType} = this.currConf
@@ -353,7 +359,7 @@
       clear-fix()
     .conf-detail
       height: 80%
-      padding-bottom: 60px
+      padding-bottom: 50px
       overflow:hidden
       .members
         position: relative

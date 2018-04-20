@@ -24,7 +24,7 @@
                       :showIcons="showIconsArray[1]"
                       :imageUrl="confMembers[confMemberIds[1]].attachment.fileUrl"></image-view>
         </div>
-        <div class="conf-oper" @click.stop="endConf">
+        <div class="conf-oper" @click.stop="openEndConfModal">
           <i class="icon icon-finish"></i>
           <h1 class="text">结束转播</h1>
         </div>
@@ -33,6 +33,9 @@
         <h1 class="tip">请选择要操作的转播</h1>
       </div>
     </div>
+    <modal @confirm="endConf" :modalType="3" :autoHide="false" ref="endConfModal">
+      <p>确认结束当前转播吗?</p>
+    </modal>
     <modal ref="modal"></modal>
   </div>
 </template>
@@ -65,6 +68,9 @@
     computed: {
     },
     methods: {
+      openEndConfModal() {
+        this.$refs.endConfModal.show()
+      },
       endConf() {
         const {confId, confType} = this.currConf
         endConf({confId, confType}).then((res) => {
@@ -222,7 +228,7 @@
       position: relative
       overflow:hidden
       height: 80%
-      padding-bottom: 60px
+      padding-bottom: 50px
       .members
         overflow: auto
         height: 100%
