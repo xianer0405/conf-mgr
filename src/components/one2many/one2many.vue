@@ -85,7 +85,6 @@
       /* 根据当前成员计算出转播方成员 */
       soureMember() {
         if (this.confMembers) {
-          console.log(JSON.stringify(this.confMembers[this.confMemberIds[0]]))
           return this.confMembers[this.confMemberIds[0]]
         } else {
           return null
@@ -94,19 +93,11 @@
       /* 根据当前成员计算出观看方成员 */
       watcherMembers() {
         if (this.confMembers) {
-          console.log('========confMembers===========')
-          console.log(JSON.stringify(this.confMembers))
-          console.log('========confMemberIds===========')
-          console.log(JSON.stringify(this.confMemberIds))
           const watcherIds = this.confMemberIds.slice(1)
-          console.log('========watcherIds===========')
-          console.log(JSON.stringify(watcherIds))
           let watchers = []
           for (let i of watcherIds) {
             watchers.push(this.confMembers[i])
           }
-          console.log('========watchers===========')
-          console.log(JSON.stringify(watchers))
           return watchers
         } else {
           return []
@@ -165,13 +156,13 @@
         const confId = this.currConf.confId
         const confType = this.currConf.confType
         const deviceId = operParam.kid
-        const type = operParam.iconType === IMAGE_ICONS.VOL_IN || operParam.iconType === IMAGE_ICONS.VOL_IN_OFF ? 1 : 2 // 表示输入或输出
-        const mute = operParam.iconType === IMAGE_ICONS.VOL_IN || operParam.iconType === IMAGE_ICONS.VOL_OUT // 是否静音
         if (operParam.iconType === IMAGE_ICONS.DELETE_MEMEBER) {
           const confReq = {confId, deviceIds: deviceId, confType}
           this.deleteMemberReq = confReq
           this.$refs.deleteMemberModal.show()
         } else {
+          const type = operParam.iconType === IMAGE_ICONS.VOL_IN || operParam.iconType === IMAGE_ICONS.VOL_IN_OFF ? 1 : 2 // 表示输入或输出
+          const mute = operParam.iconType === IMAGE_ICONS.VOL_IN || operParam.iconType === IMAGE_ICONS.VOL_OUT // 是否静音
           const volumeReq = {confId, deviceId, type, mute}
           this.volumeOper(volumeReq, operParam)
         }
@@ -296,6 +287,7 @@
         loadConfs(param).then((res) => {
           if (res.success) {
             this.confList = res.bizData.page.list
+            this.confList = this.confList ? this.confList : []
             this.totalCount = res.bizData.page.total
           }
         })
@@ -312,13 +304,13 @@
     },
     created() {
       this._loadConfList()
-      if (this.timer) {
+      /* if (this.timer) {
         clearTimeout(this.timer)
       } else {
         this.timer = setTimeout(() => {
           this._loadConfList()
         }, 5000)
-      }
+      } */
     },
     activated () {
       /* setTimeout(() => {
@@ -405,9 +397,9 @@
               margin-left: 40px
               .icon
                 color: #9CA5B0
-                background: #f3f5fd + 50%
+                background: #f3f5fd
                 &:hover
-                  background: #f3f5fd
+                  background: #dee3f9
         .loading-container
           position: absolute
           width: 100%

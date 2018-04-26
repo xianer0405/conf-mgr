@@ -1,6 +1,6 @@
 <template>
   <scroll class="listview" :data="confs" :refreshDelay="refreshDelay">
-    <ul class="conf-list" v-show="confs">
+    <ul class="conf-list" v-show="confs && confs.length">
       <li class="item"
           :class="{active: currentIndex === index}"
           :key="index"

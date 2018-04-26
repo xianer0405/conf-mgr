@@ -1,5 +1,5 @@
 <template>
-  <div class="image-view" ref="imageView">
+  <div class="image-view" ref="imageView" draggable="false">
     <div class="img-wrapper" ref="imgWrapper">
       <img :src='imageUrl' alt="">
     </div>
@@ -76,8 +76,8 @@
       text-align: left
       font-size: 16px
       background: #F3F5FD
-      cursor: pointer
       &:hover
+        cursor: pointer
         background: #f3f5fd - 5%
       .icon
         padding: 0 5px

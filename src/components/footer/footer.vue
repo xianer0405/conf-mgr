@@ -2,12 +2,13 @@
   <footer class='footer'>
     <ul class='menu'>
       <router-link tag='li'
+                   class='item'
                    :key='index'
                    :to='item.path'
-                   class='item'
                    @click.native="selectItem(item)"
                    v-for='(item,index) in menuList'>
         <span class='flag'></span>
+        <span class='count' v-if="item.showCount">{{item.confCount}}</span>
         <div class='icon-wrapper'>
           <i class='icon' :class='item.iconClass'></i>
         </div>
@@ -19,6 +20,14 @@
 
 <script type='text/ecmascript-6'>
   export default {
+    props: {
+      confCounts: {
+        type: Array,
+        default: function() {
+          return []
+        }
+      }
+    },
     data() {
       return {
         menuList: [ {
@@ -28,15 +37,21 @@
         }, {
           path: '/one2one',
           text: '一对一转播',
-          iconClass: 'icon-people'
+          iconClass: 'icon-people',
+          showCount: true,
+          confCount: 0
         }, {
           path: '/one2many',
           text: '一对多转播',
-          iconClass: 'icon-duoren'
+          iconClass: 'icon-duoren',
+          showCount: true,
+          confCount: 0
         }, {
           path: '/many2many',
           text: '多对多转播',
-          iconClass: 'icon-qunzuduoren'
+          iconClass: 'icon-qunzuduoren',
+          showCount: true,
+          confCount: 0
         }, {
           path: '/record',
           text: '录像管理',
@@ -54,6 +69,14 @@
           disabled: true
         }
         ]
+      }
+    },
+    watch: {
+      confCounts() {
+        console.log(this.confCounts)
+        this.$set(this.menuList[1], 'confCount', this.confCounts[0].confCount)
+        this.$set(this.menuList[2], 'confCount', this.confCounts[1].confCount)
+        this.$set(this.menuList[3], 'confCount', this.confCounts[2].confCount)
       }
     },
     methods: {
@@ -115,6 +138,17 @@
           font-size: $font-size-medium-x
           font-weight: 500
           color: $color-text-d
+        .count
+          position: absolute
+          right: 14px
+          top: 5px
+          width: 16px
+          height: 16px
+          line-height: 16px
+          font-size: 12px
+          color: #fff
+          background: #15d273
+          border-radius: 100%
         .flag
           position: absolute
           top: -18px

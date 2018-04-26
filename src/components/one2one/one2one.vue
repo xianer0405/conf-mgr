@@ -169,6 +169,7 @@
         loadConfs(param).then((res) => {
           if (res.success) {
             this.confList = res.bizData.page.list
+            this.confList = this.confList ? this.confList : []
             this.totalCount = res.bizData.page.total
           }
         })
@@ -189,9 +190,9 @@
       }, 1000)
     },
     activated () {
-      setTimeout(() => {
+      /* setTimeout(() => {
         this._loadConfList()
-      }, 1000)
+      }, 1000) */
     },
     components: {
       ConfList,

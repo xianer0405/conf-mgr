@@ -45,6 +45,19 @@
       bounce: {
         type: Boolean,
         default: true
+      },
+      preventDefault: {
+        type: Boolean,
+        default: true
+      },
+      scrollbar: {
+        type: Object,
+        default: function() {
+          return {
+            fade: true,
+            interactive: true
+          }
+        }
       }
     },
     watch: {
@@ -52,6 +65,11 @@
         setTimeout(() => {
           this.refresh()
         }, this.refreshDelay)
+      },
+      preventDefault() {
+        console.log(`this.preventDefault=${this.preventDefault}`)
+        this._initScroll()
+        this.refresh()
       }
     },
     mounted() {
@@ -83,15 +101,12 @@
           probeType: this.probeType,
           click: this.click,
           bounce: this.bounce,
-          scrollbar: {
-            fade: true,
-            interactive: true
-          },
+          scrollbar: this.scrollbar,
           mouseWheel: {
             speed: 10
-          }
+          },
+          preventDefault: this.preventDefault
         })
-
         // 是否派发滚动事件
         if (this.listenScroll) {
           this.scroll.on('scroll', (pos) => {

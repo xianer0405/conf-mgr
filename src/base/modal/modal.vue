@@ -130,7 +130,6 @@
 
   .modal
     text-align: center
-    font-size: $font-size-medium
     position: fixed
     z-index: 3
     top: 0
@@ -139,7 +138,7 @@
     bottom: 0
     margin-top: -110px
     text-align: center
-    font-size: $font-size-medium
+    font-size: 15px
     background-color: rgba(150,150,150, 0.4)
     &.in-enter-active, &.in-leave-active
       transition: all .3s ease
@@ -149,6 +148,7 @@
       position: absolute
       top: 50%
       left: 50%
+      margin-top: -1px
       min-width: 260px
       min-height: 40px
       transform: translate3d(-50%, -50%, 0)
@@ -183,8 +183,9 @@
           text-ellipsis()
         .icon
           position: absolute
-          font-size: 18px
           top:50%
+          margin-top: 3px
+          font-size: 18px
           transform: translate3d(0, -50%, 0)
           color: #3c78e6
       .bottom

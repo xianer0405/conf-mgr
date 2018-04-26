@@ -38,7 +38,7 @@
                 :key='index'
                 v-for='(item, index) in sourceSearchedList'>
                 <span class='name'>{{item.name}}</span>
-                <i class='icon icon-add' @click='selectSourceSearchedItem(item)'></i>
+                <i class='icon' :class="sourceSearchedItemIconCls(item)" @click='selectSourceSearchedItem(item)'></i>
             </li>
           </ul>
         </div>
@@ -105,14 +105,10 @@
     },
     watch: {
       searchInput(newInput) {
-        this.execSearch(newInput)
+        this.execSearch(newInput, 'search')
       },
-      sourceSearchInput(newInput, oldInput) {
-        if (newInput) {
-          this.sourceSearchedList = this._searchMembers()
-        } else {
-          this.sourceSearchedList = []
-        }
+      sourceSearchInput(newInput) {
+        this.execSearch(newInput, 'sourceSearch')
       },
       confType(newType) {
         this.selectedMemebers = []
@@ -192,6 +188,17 @@
         }
         return 'icon-add'
       },
+      sourceSearchedItemIconCls(item) {
+        if (this.selectedMemebers.length) {
+          const fIndex = this.selectedMemebers.findIndex((value) => {
+            return item.id === value.id
+          })
+          if (fIndex !== -1) {
+            return 'icon-radio-checked'
+          }
+        }
+        return 'icon-add'
+      },
       selectSearchedItem(item) {
         const index = this.selectedMemebers.findIndex((value) => {
           return item.id === value.id
@@ -218,30 +225,39 @@
         this.clearSearchInpput()
         this.clearSourceSearchInpput()
       },
+      sourceSearch() {
+        let sourceSearchInput = this.sourceSearchInput
+        this.execSearch(sourceSearchInput, 'sourceSearch')
+      },
       search() {
         let searchInput = this.searchInput
-        this.execSearch(searchInput)
+        this.execSearch(searchInput, 'search')
       },
-      execSearch(searchInput) {
+      execSearch(searchInput, type) {
         if (searchInput) {
           // this.searchedList = this._searchMembers()
           let searchParam = {name: searchInput}
           searchDevice(searchParam).then((res) => {
-            console.log(res)
             if (res.success) {
-              this.searchedList = res.bizData.list
-              if (this.searchedList.length === 0) {
-                this.searchedList.push({id: INVALID_ID, name: '没有搜到相关记录'})
+              if (type === 'sourceSearch') {
+                this.sourceSearchedList = res.bizData.list
+                if (this.sourceSearchedList.length === 0) {
+                  this.sourceSearchedList.push({id: INVALID_ID, name: '没有搜到相关记录'})
+                }
+              } else {
+                this.searchedList = res.bizData.list
+                if (this.searchedList.length === 0) {
+                  this.searchedList.push({id: INVALID_ID, name: '没有搜到相关记录'})
+                }
               }
             }
           })
         } else {
-          this.searchedList = []
-        }
-      },
-      sourceSearch() {
-        if (this.sourceSearchInput) {
-          this.sourceSearchedList = this._searchMembers()
+          if (type === 'sourceSearch') {
+            this.sourceSearchedList = []
+          } else {
+            this.searchedList = []
+          }
         }
       },
       hideSearchResult() {
@@ -249,30 +265,6 @@
       },
       hideSourceSearchResult() {
         this.clearSourceSearchInpput()
-      },
-      _mockSearchedList() {
-        return [
-          {
-            id: 1,
-            name: '设备1'
-          },
-          {
-            id: 2,
-            name: '设备2'
-          },
-          {
-            id: 3,
-            name: '设备3'
-          },
-          {
-            id: 4,
-            name: '设备4'
-          },
-          {
-            id: 5,
-            name: '设备5'
-          }
-        ]
       },
       upload() {
         const fileId = 'logoImage'
@@ -287,9 +279,6 @@
       },
       _clearSearchedList() {
         this.searchedList = []
-      },
-      _searchMembers(keyword) {
-        return this._mockSearchedList()
       }
     }
   }
@@ -378,6 +367,8 @@
         &.icon-record, &.icon-people
           font-size: 16px
           left: 6px
+        &.icon-people:hover
+          color: #cdced3
       .ul-list
         width: 260px
         box-sizing: border-box

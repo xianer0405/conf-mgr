@@ -6,7 +6,7 @@
         <router-view></router-view>
       </keep-alive>
     </div>
-    <m-footer @routerChange="routerChange"></m-footer>
+    <m-footer @routerChange="routerChange" :confCounts="confCounts"></m-footer>
     <modal ref="modal">
       操作成功!操作成功!操作成功!操作成功!操作成功!操作成功!
     </modal>
@@ -18,11 +18,15 @@
   import MFooter from 'components/footer/footer'
   import Splitter from 'base/splitter/splitter'
   import Modal from 'base/modal/modal'
+  import {queryConfCount} from 'api/conf'
+
+  const QUERY_INTERVAL = 10000
 
   export default {
     data() {
       return {
-        path: '当前位置：'
+        path: '当前位置：',
+        confCounts: []
       }
     },
     created() {
@@ -32,7 +36,7 @@
       routerChange(route) {
         console.log('confer.vue routerChange')
         if (route.disabled) {
-          this.$refs.modal.show()
+          // this.$refs.modal.show()
         }
       },
       forbiddenBrowserBack() {
@@ -40,9 +44,26 @@
         window.addEventListener('popstate', function () {
           history.pushState(null, null, document.URL)
         })
+      },
+      queryConfCount() {
+        if (this.confCountTimer) {
+          clearTimeout(this.confCountTimer)
+        }
+        this._queryConfCount()
+      },
+      _queryConfCount() {
+        queryConfCount().then((res) => {
+          if (res.success) {
+            this.confCounts = res.bizData.list
+          }
+          this.confCountTimer = setTimeout(() => {
+            this._queryConfCount()
+          }, QUERY_INTERVAL)
+        })
       }
     },
     mounted() {
+      this.queryConfCount()
     },
     components: {
       MHeader,
