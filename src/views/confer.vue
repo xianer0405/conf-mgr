@@ -7,8 +7,8 @@
       </keep-alive>
     </div>
     <m-footer @routerChange="routerChange" :confCounts="confCounts"></m-footer>
-    <modal ref="modal">
-      操作成功!操作成功!操作成功!操作成功!操作成功!操作成功!
+    <modal ref="modal" :autoHide="false">
+      操作成功!
     </modal>
   </div>
 </template>
@@ -36,7 +36,7 @@
       routerChange(route) {
         console.log('confer.vue routerChange')
         if (route.disabled) {
-          // this.$refs.modal.show()
+          this.$refs.modal.show('1111')
         }
       },
       forbiddenBrowserBack() {

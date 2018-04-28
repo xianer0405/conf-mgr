@@ -4,6 +4,7 @@ import ConfForm from 'components/conf-form/conf-form'
 import One2one from 'components/one2one/one2one'
 import One2many from 'components/one2many/one2many'
 import Many2many from 'components/many2many/many2many'
+import SystemConfig from 'components/system-config/system-config'
 import DeviceList from 'components/device-list/device-list'
 import SysuserList from 'components/sysuser-list/sysuser-list'
 import AreaConfig from 'components/area-config/area-config'
@@ -47,14 +48,19 @@ export default new Router({
     },
     {
       path: '/config',
-      component: AreaConfig,
+      component: SystemConfig,
+      redirect: '/config/area',
       children: [
         {
-          path: 'sysuser',
+          path: '/config/area',
+          component: AreaConfig
+        },
+        {
+          path: '/config/sysuser',
           component: SysuserList
         },
         {
-          path: 'device',
+          path: '/config/device',
           component: DeviceList
         }
       ]

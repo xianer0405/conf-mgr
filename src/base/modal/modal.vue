@@ -2,14 +2,14 @@
   <transition name="in">
     <div class="modal" v-if="showFlag" @click.stop="hideByClickShadow">
       <div class="modal-container" @click.stop>
-        <div class="header" v-if="modalType !== 1">
+        <div class="header" v-if="modalType !== 1 && showHeader">
           <h1 class="title">{{title}}</h1>
           <div class="icon-wrapper" @click.stop="hide">
             <i class="icon icon-close" v-if="modalType !== 1"></i>
           </div>
         </div>
         <div class="content-wrapper" v-if="modalType === 1">
-          <i class="icon" :class="iconCls"></i>
+          <i class="icon" :class="iconCls" v-if="showIcon"></i>
           <div class="content tip">
             <slot>{{message}}</slot>
           </div>
@@ -19,7 +19,7 @@
             <slot>提示消息</slot>
           </div>
         </div>
-        <div class="bottom" v-if="modalType !== 1">
+        <div class="bottom" v-if="modalType !== 1 && showBottom">
           <span class="btn cancel" v-if="modalType === 3" @click.stop="cancel">取&nbsp;&nbsp;消</span>
           <span class="btn submit" @click.stop="confirm">确&nbsp;&nbsp;认</span>
         </div>
@@ -31,6 +31,18 @@
 <script type="text/ecmascript-6">
   export default {
     props: {
+      showIcon: {
+        type: Boolean,
+        default: true
+      },
+      showHeader: {
+        type: Boolean,
+        default: true
+      },
+      showBottom: {
+        type: Boolean,
+        default: true
+      },
       title: {
         type: String,
         default: '提示'
@@ -104,7 +116,7 @@
         this.messageType = 1
       },
       hideByClickShadow() {
-        if (this.modalType === 1) {
+        if (this.modalType !== 3) {
           this.showFlag = false
         }
       },
@@ -173,8 +185,8 @@
         line-height: 60px
         padding: 10px 20px
         text-align: center
-        .content
-          margin-left: 18px
+        /* .content
+          margin-left: 18px */
         .tip
           display: inline-block;
           margin-left: 30px;
