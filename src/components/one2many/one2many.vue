@@ -14,7 +14,12 @@
       <div class="members" v-show="currConf && confReady">
         <div class="shower-wrapper members-wrapper" v-if="soureMember">
           <div class="member-wrapper">
-            <image-view @iconClick="memberOper" ref="sourceImageView"  :kid="soureMember.id" :showIcons="showIcons" :imageUrl="soureMember.attachment ? soureMember.attachment.fileUrl : defaultImageUrl"></image-view>
+            <image-view @iconClick="memberOper"
+                        ref="sourceImageView"
+                        :title="soureMember.deviceName"
+                        :kid="soureMember.id"
+                        :showIcons="showIcons"
+                        :imageUrl="soureMember.attachment ? soureMember.attachment.fileUrl : defaultImageUrl"></image-view>
           </div>
           <div class="conf-oper" @click.stop="openEndConfModal">
             <i class="icon icon-finish"></i>
@@ -26,7 +31,11 @@
             <ul class="watchers">
               <li class="watcher" :key="index" v-for="(item, index) in watcherMembers">
                 <div class="member-wrapper">
-                  <image-view ref="imageView" :kid="item.id" @iconClick="memberOper" :showIcons="showIconsOfWatchers[index]" :imageUrl="item.attachment ? item.attachment.fileUrl :defaultImageUrl"></image-view>
+                  <image-view ref="imageView"
+                              :title="item.deviceName"
+                              :kid="item.id" @iconClick="memberOper"
+                              :showIcons="showIconsOfWatchers[index]"
+                              :imageUrl="item.attachment ? item.attachment.fileUrl :defaultImageUrl"></image-view>
                 </div>
               </li>
             </ul>
@@ -41,7 +50,7 @@
       </div>
     </div>
     <add-member @add-confirm="addMembers" ref="addMemberModal"></add-member>
-    <modal ref="modal"></modal>
+    <modal ref="tipModal"></modal>
     <modal @confirm="deleteMember" @cancel="cancelDelete" :modalType="3" :autoHide="false" ref="deleteMemberModal">
       <p>确认删除该成员吗?</p>
     </modal>
@@ -59,8 +68,9 @@
   import ImageView from 'base/image-view/image-view'
   import AddMember from 'components/add-member/add-member'
   import {loadConfs, volumeMute, endConf, deleteMember, addMembers} from 'api/conf'
-  import {loadDevices} from 'api/device'
+  import {loadDevices, loadDevicesVolumeState} from 'api/device'
   import {IMAGE_ICONS} from 'common/js/config'
+  import {getQueryString} from 'common/js/util'
 
   const CONF_TYPE = 2
 
@@ -70,12 +80,13 @@
         currConf: null,
         currIndex: -1,
         confReady: false,
+        memberStateReady: false,
         confList: null,
         confMembers: null,
         confMemberIds: [],
         totalCount: 0,
         showIcons: ['icon-mic'],
-        showIconsTmpl: ['icon-volume-o', 'icon-delete'],
+        showIconsTmpl: ['icon-mic', 'icon-volume-o', 'icon-delete'],
         showIconsOfWatchers: [],
         defaultImageUrl: require('../../common/image/1.jpg'),
         memberOperFlag: false
@@ -84,20 +95,16 @@
     computed: {
       /* 根据当前成员计算出转播方成员 */
       soureMember() {
-        if (this.confMembers) {
-          return this.confMembers[this.confMemberIds[0]]
+        if (this.confMembers && this.confMembers.length) {
+          return this.confMembers[0]
         } else {
           return null
         }
       },
       /* 根据当前成员计算出观看方成员 */
       watcherMembers() {
-        if (this.confMembers) {
-          const watcherIds = this.confMemberIds.slice(1)
-          let watchers = []
-          for (let i of watcherIds) {
-            watchers.push(this.confMembers[i])
-          }
+        if (this.confMembers && this.confMembers.length) {
+          let watchers = this.confMembers.slice(1)
           return watchers
         } else {
           return []
@@ -140,16 +147,22 @@
         const {confId, confType} = this.currConf
         endConf({confId, confType}).then((res) => {
           if (res.success) {
-            this.$refs.modal.info('操作成功!')
+            this.$refs.tipModal.info('操作成功!')
             this._loadConfList()
             this._resetCurrConf()
+            this.$bus.$emit('conf-change', confId)
           } else {
-            this.$refs.modal.info('失败成功!')
+            this.$refs.tipModal.info('失败成功!')
           }
         })
       },
       memberOper(operParam) {
+        if (!this.memberStateReady) {
+          this.$refs.tipModal.error('正在加载转播状态!')
+          return false
+        }
         if (this.memberOperFlag) {
+          this.$refs.tipModal.error('上一个操作未完成，请稍候再试!')
           return false
         }
         this.memberOperFlag = true
@@ -196,7 +209,6 @@
             that.$refs.modal.info('操作失败!')
           }
         }).finally(() => {
-          console.log('volumeMute finally ')
           that.memberOperFlag = false
         })
       },
@@ -209,18 +221,21 @@
             if (volumeReq.deviceId === that.confMemberIds[0]) {
               this.$set(this.showIcons, operParam.iconIdx, newIcon)
             } else {
-              newShowIcons = that.showIconsTmpl.slice()
-              newShowIcons[operParam.iconIdx] = newIcon
               const watcherIds = that.confMemberIds.slice(1)
               const imageViewIndex = watcherIds.indexOf(volumeReq.deviceId)
+              if (this.showIconsOfWatchers.length) {
+                newShowIcons = this.showIconsOfWatchers[imageViewIndex].slice()
+              } else {
+                newShowIcons = that.showIconsTmpl.slice()
+              }
+              newShowIcons[operParam.iconIdx] = newIcon
               console.log(this.showIconsOfWatchers)
-              // console.log('=======================')
               this.$set(this.showIconsOfWatchers, imageViewIndex, newShowIcons)
-              // console.log(this.showIconsOfWatchers)
+              console.log(this.showIconsOfWatchers)
             }
-            this.$refs.modal.info('操作成功!')
+            this.$refs.tipModal.info('操作成功!')
           } else {
-            this.$refs.modal.error('操作失败!')
+            this.$refs.tipModal.error('操作失败!')
           }
         }).finally(() => {
           console.log('volumeMute finally ')
@@ -231,6 +246,7 @@
         this.currConf = newCurrConf
         const deviceIds = this.currConf.members
         this._loadConfMembers(deviceIds)
+        this._loadVolumeState(deviceIds)
       },
       _reverseIcon(iconParam) {
         let newIcon = ''
@@ -251,12 +267,12 @@
       _resetCurrConf() {
         this.currIndex = -1
         this.confReady = false
+        this.memberStateReady = false
         this.currConf = null
         this.confMembers = null
         this.confMemberIds = []
       },
       _initShowIcons() {
-        // showIconsOfWatchers
         let members = this.currConf.members
         const memberIds = members.split(',')
         if (memberIds) {
@@ -273,7 +289,7 @@
       _loadConfMembers(deviceIds) {
         loadDevices({deviceIds}).then((res) => {
           if (res.success) {
-            this.confMembers = res.bizData.map
+            this.confMembers = res.bizData.list
             this.confMemberIds = deviceIds.split(',').map((item) => {
               return parseInt(item)
             })
@@ -282,13 +298,71 @@
           }
         })
       },
+      _loadVolumeState(deviceIds) {
+        this.memberStateReady = false
+        loadDevicesVolumeState({deviceIds}).then((res) => {
+          const that = this
+          if (res.success) {
+            let states = res.bizData.list
+            const sourceState = states[0]
+            if (sourceState) {
+              let newIcon = IMAGE_ICONS.VOL_IN
+              if (sourceState.silence) {
+                newIcon = IMAGE_ICONS.VOL_IN_OFF
+              }
+              that.$set(that.showIcons, 0, newIcon)
+            }
+            const statesOfWatchers = states.slice(1)
+            statesOfWatchers.forEach((state, index) => {
+              if (state) {
+                const newShowIcons = that.showIconsTmpl.slice()
+                if (state.mute) {
+                  newShowIcons[1] = IMAGE_ICONS.VOL_OUT_OFF
+                } else {
+                  newShowIcons[1] = IMAGE_ICONS.VOL_OUT
+                }
+                if (state.silence) {
+                  newShowIcons[0] = IMAGE_ICONS.VOL_IN_OFF
+                } else {
+                  newShowIcons[0] = IMAGE_ICONS.VOL_IN
+                }
+                that.$set(that.showIconsOfWatchers, index, newShowIcons)
+              }
+            })
+          }
+          that.memberStateReady = true
+        })
+      },
       _loadConfList() {
-        const param = {confType: CONF_TYPE, skip: 0, limit: 20}
+        const creatorId = getQueryString('id')
+        const param = {creatorId, confType: CONF_TYPE, skip: 0, limit: 20}
         loadConfs(param).then((res) => {
           if (res.success) {
-            this.confList = res.bizData.page.list
-            this.confList = this.confList ? this.confList : []
+            let currConfId = null
+            if (this.currIndex !== -1) {
+              currConfId = this.confList[this.currIndex].confId
+            }
+            let list = res.bizData.page.list
+            if (currConfId && list && list.length) {
+              const fIndex = list.findIndex((item) => {
+                return item.confId === currConfId
+              })
+              this.currIndex = fIndex
+              if (this.currIndex === -1) {
+                this._resetCurrConf()
+              }
+            }
+            this.confList = list ? list : []
             this.totalCount = res.bizData.page.total
+          }
+        })
+      },
+      _initConfListener() {
+        const that = this
+        this.$bus.$on('conf-refresh', function(arg) {
+          console.log(arg)
+          if (arg && arg.confType === CONF_TYPE) {
+            that._loadConfList()
           }
         })
       }
@@ -304,18 +378,7 @@
     },
     created() {
       this._loadConfList()
-      /* if (this.timer) {
-        clearTimeout(this.timer)
-      } else {
-        this.timer = setTimeout(() => {
-          this._loadConfList()
-        }, 5000)
-      } */
-    },
-    activated () {
-      /* setTimeout(() => {
-        this._loadConfList()
-      }, 1000) */
+      this._initConfListener()
     },
     components: {
       ConfList,
@@ -386,6 +449,9 @@
             .watchers
               display: inline-block
               margin-left: 50px
+              margin-bottom: 30px
+              .watcher
+                margin-bottom: 10px
               .member-wrapper
                 display: inline-block
                 width: 140px

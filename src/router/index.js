@@ -9,6 +9,7 @@ import DeviceList from 'components/device-list/device-list'
 import SysuserList from 'components/sysuser-list/sysuser-list'
 import AreaConfig from 'components/area-config/area-config'
 import NullView from 'base/null-view/null-view'
+import Rtmp2third from 'components/rtmp2third/rtmp2third'
 
 Vue.use(Router)
 
@@ -35,15 +36,15 @@ export default new Router({
       component: Many2many
     },
     {
-      path: '/record',
+      path: '/record/:isThird',
       component: NullView
     },
     {
-      path: '/push2third',
-      component: NullView
+      path: '/push2third/:isThird',
+      component: Rtmp2third
     },
     {
-      path: '/link2or1',
+      path: '/link2or1/:isThird',
       component: NullView
     },
     {

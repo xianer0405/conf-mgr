@@ -13,16 +13,18 @@
       </div>
       <div class="members" v-show="currConf && confReady">
         <div class="member-wrapper" v-if="confReady">
-          <image-view :kid="confMemberIds[0]"
+          <image-view :title="confMembers[0].deviceName"
+                      :kid="confMemberIds[0]"
                       @iconClick="memberOper"
                       :showIcons="showIconsArray[0]"
-                      :imageUrl="confMembers[confMemberIds[0]].attachment.fileUrl"></image-view>
+                      :imageUrl="confMembers[0].attachment ? confMembers[0].attachment.fileUrl : defaultImageUrl"></image-view>
         </div>
         <div class="member-wrapper" v-if="confReady">
-          <image-view :kid="confMemberIds[1]"
+          <image-view :title="confMembers[1].deviceName"
+                      :kid="confMemberIds[1]"
                       @iconClick="memberOper"
                       :showIcons="showIconsArray[1]"
-                      :imageUrl="confMembers[confMemberIds[1]].attachment.fileUrl"></image-view>
+                      :imageUrl="confMembers[1].attachment ? confMembers[1].attachment.fileUrl : defaultImageUrl"></image-view>
         </div>
         <div class="conf-oper" @click.stop="openEndConfModal">
           <i class="icon icon-finish"></i>
@@ -46,8 +48,11 @@
   import ConfList from 'components/conf-list/conf-list'
   import ImageView from 'base/image-view/image-view'
   import {loadConfs, endConf, volumeMute} from 'api/conf'
-  import {loadDevices} from 'api/device'
+  import {loadDevices, loadDevicesVolumeState} from 'api/device'
   import {IMAGE_ICONS} from 'common/js/config'
+  import {getQueryString} from 'common/js/util'
+
+  const CONF_TYPE = 1
 
   export default {
     data() {
@@ -78,6 +83,7 @@
             this.$refs.modal.info('操作成功!')
             this._loadConfList()
             this._resetCurrConf()
+            this.$bus.$emit('conf-change', confId)
           } else {
             this.$refs.modal.info('失败成功!')
           }
@@ -96,18 +102,14 @@
         volumeMute(volumeReq).then((res) => {
           if (res.success) {
             let newIcon = this._reverseIcon(param)
-            console.log('newIcon = ' + newIcon)
             const newShowIcons = this.showIcons.slice()
-            console.log(this.showIconsArray)
             newShowIcons[param.iconIdx] = newIcon
-            console.log('newShowIcons = ' + newShowIcons)
             // 数组数据修改的模式
             if (volumeReq.deviceId === this.confMemberIds[0]) {
               this.$set(this.showIconsArray, 0, newShowIcons)
             } else {
               this.$set(this.showIconsArray, 1, newShowIcons)
             }
-            console.log(this.showIconsArray)
             this.$refs.modal.info('操作成功!')
           } else {
             this.$refs.modal.error('操作失败!')
@@ -121,10 +123,13 @@
         this.confReady = false
         this.currConf = this.confList[this.currIndex]
         console.log(this.currConf)
-        this.confMemberIds = this.currConf.members.split(',')
+        this.confMemberIds = this.currConf.members.split(',').map((val) => {
+          return parseInt(val)
+        })
         const deviceIds = this.currConf.members
         this._initShowIcons()
         this._loadConfMembers(deviceIds)
+        this._loadVolumeState(deviceIds)
       },
       selectChange(index) {
         this.currIndex = index
@@ -158,19 +163,67 @@
       _loadConfMembers(deviceIds) {
         loadDevices({deviceIds}).then((res) => {
           if (res.success) {
-            this.confMembers = res.bizData.map
+            this.confMembers = res.bizData.list
             this.confReady = true
             console.log(this.confMembers)
           }
         })
       },
+      _loadVolumeState(deviceIds) {
+        loadDevicesVolumeState({deviceIds}).then((res) => {
+          console.log(res)
+          const that = this
+          if (res.success) {
+            let states = res.bizData.list
+            states.forEach(function(state, index) {
+              if (state) {
+                const newShowIcons = that.showIcons.slice()
+                if (state.mute) {
+                  newShowIcons[1] = IMAGE_ICONS.VOL_OUT_OFF
+                } else {
+                  newShowIcons[1] = IMAGE_ICONS.VOL_OUT
+                }
+                if (state.silence) {
+                  newShowIcons[0] = IMAGE_ICONS.VOL_IN_OFF
+                } else {
+                  newShowIcons[0] = IMAGE_ICONS.VOL_IN
+                }
+                that.$set(that.showIconsArray, index, newShowIcons)
+              }
+            })
+          }
+        })
+      },
       _loadConfList() {
-        const param = {confType: 1, skip: 0, limit: 20}
+        const creatorId = getQueryString('id')
+        const param = {creatorId, confType: CONF_TYPE, skip: 0, limit: 20}
         loadConfs(param).then((res) => {
           if (res.success) {
-            this.confList = res.bizData.page.list
-            this.confList = this.confList ? this.confList : []
+            let currConfId = null
+            if (this.currIndex !== -1) {
+              currConfId = this.confList[this.currIndex].confId
+            }
+            let list = res.bizData.page.list
+            if (currConfId && list && list.length) {
+              const fIndex = list.findIndex((item) => {
+                return item.confId === currConfId
+              })
+              this.currIndex = fIndex
+              if (this.currIndex === -1) {
+                this._resetCurrConf()
+              }
+            }
+            this.confList = list ? list : []
             this.totalCount = res.bizData.page.total
+          }
+        })
+      },
+      _initConfListener() {
+        const that = this
+        this.$bus.$on('conf-refresh', function(arg) {
+          console.log(arg)
+          if (arg && arg.confType === CONF_TYPE) {
+            that._loadConfList()
           }
         })
       }
@@ -188,6 +241,7 @@
       setTimeout(() => {
         this._loadConfList()
       }, 1000)
+      this._initConfListener()
     },
     activated () {
       /* setTimeout(() => {

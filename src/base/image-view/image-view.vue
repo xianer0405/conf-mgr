@@ -2,6 +2,7 @@
   <div class="image-view" ref="imageView" draggable="false">
     <div class="img-wrapper" ref="imgWrapper">
       <img :src='imageUrl' alt="">
+      <span v-show="title" class="title">&nbsp;{{title}}</span>
     </div>
     <div class="icons-wrapper" v-show="showIcons.length">
       <i class="icon"
@@ -17,6 +18,10 @@
 
   export default {
     props: {
+      title: {
+        type: String,
+        default: ''
+      },
       kid: {
         type: [Number],
         default: 0
@@ -55,6 +60,7 @@
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable.styl"
+  @import "~common/stylus/mixin.styl"
 
   .image-view
     position: relative
@@ -65,22 +71,34 @@
     background: #F3F5FD
     .img-wrapper
       width: 100%
-      height: 100%;
+      height: 100%
       img
         width: 100%
-        height: 100%;
+        height: 100%
+        max-height: 219px
+      .title
+        position: absolute
+        top: 0
+        left: 0
+        width: 100%
+        line-height: 20px
+        color: #e8e8e8
+        text-align: left
+        background: rgba(0, 0, 0, 0.2)
+        no-wrap()
     .icons-wrapper
       position: absolute
       width: 100%
       line-height: 24px
       text-align: left
-      font-size: 16px
       background: #F3F5FD
       &:hover
         cursor: pointer
         background: #f3f5fd - 5%
       .icon
         padding: 0 5px
+        font-size: 16px
+        vertical-align: -2px
         &:hover
           color: #3c78e6
 </style>

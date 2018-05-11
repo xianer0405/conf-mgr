@@ -13,11 +13,14 @@ module.exports = {
     proxyTable: {
         '/apis': {
             // 后台地址，不能使用localhost,需要使用IP或域名
-            target: 'http://127.0.0.1:80/server',
+            target: 'http://127.0.0.1:90/server',
             changeOrigin: true,  //是否跨域
             pathRewrite: {
                 '^/apis': ''//需要rewrite重写的,
-            }              
+            },
+            cookieDomainRewrite: {
+              'http://localhost:8080/': 'http://127.0.0.1:90/server'
+            }
         }
     },
     // Various Dev Server settings

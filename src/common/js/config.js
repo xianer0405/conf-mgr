@@ -9,3 +9,6 @@ export const IMAGE_ICONS = {
   FLAG: 'icon-flag',
   FLAG_SELECTED: 'icon-flag-selected'
 }
+
+export const env = 'prod'
+// export const env = 'env'

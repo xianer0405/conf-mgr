@@ -45,7 +45,7 @@
             display: inline-block
             line-height: 16px
             padding: 0 22px
-            border-right: 1px solid #e2e9ed
+            border-right: 2px solid #e2e9ed
           &:first-child > .menu-text
             padding-left: 0
           &:last-child > .menu-text

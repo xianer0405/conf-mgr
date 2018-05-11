@@ -136,6 +136,7 @@
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
+  @import '~common/stylus/mixin.styl'
 
   .add-memeber
     text-align: center
@@ -223,7 +224,7 @@
             text-align: left;
             border-bottom: 1px solid #ddd
             cursor: pointer
-            text-ellipsis()
+            no-wrap()
             .icon
               position: absolute
               margin-top: 8px

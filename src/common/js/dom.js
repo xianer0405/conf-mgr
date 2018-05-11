@@ -8,7 +8,7 @@ export function addClass(el, className) {
 }
 
 export function removeClass(el, className) {
-  if (hasClass(el, className)) {
+  if (!hasClass(el, className)) {
     return
   }
   let classArr = el.className.split(' ')
@@ -30,11 +30,9 @@ export function findBySelector(className) {
 }
 
 export function dataAttr(el, name, val) {
-  let prefix = 'data-'
-  let key = prefix + name
-  if (val) {
-    return el.setAttribute(key, val)
+  if (val !== undefined) {
+    return el.setAttribute(name, val)
   } else {
-    return el.getAttribute(key)
+    return el.getAttribute(name)
   }
 }

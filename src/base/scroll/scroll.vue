@@ -58,12 +58,31 @@
             interactive: true
           }
         }
+      },
+      pullUpLoad: {
+        type: null,
+        default: false
+      },
+      pullDownRefresh: {
+        type: null,
+        default: false
       }
+    },
+    data() {
+      return {
+        isPullUpLoad: false,
+        pullUpDirty: true,
+        beforePullDown: true,
+        isPullingDown: false
+      }
+    },
+    created() {
+      this.pullDownInitTop = -30
     },
     watch: {
       data() {
         setTimeout(() => {
-          this.refresh()
+          this.forceUpdate(true)
         }, this.refreshDelay)
       },
       preventDefault() {
@@ -78,6 +97,20 @@
       }, 20)
     },
     methods: {
+      forceUpdate(dirty) {
+        if (this.pullUpLoad && this.isPullUpLoad) {
+          this.isPullUpLoad = false
+          this.scroll.finishPullUp()
+          this.pullUpDirty = dirty
+          this.refresh()
+        } if (this.pullDownRefresh && this.isPullingDown) {
+          this.isPullingDown = false
+          this.scroll.finishPullDown()
+          this.refresh()
+        } else {
+          this.refresh()
+        }
+      },
       refresh() {
         this.scroll && this.scroll.refresh()
       },
@@ -93,6 +126,19 @@
       enable() {
         this.scroll && this.scroll.enable()
       },
+      _initPullUpLoad() {
+        this.scroll.on('pullingUp', () => {
+          this.isPullUpLoad = true
+          this.$emit('pullingUp')
+        })
+      },
+      _initPullDownRefresh() {
+        this.scroll.on('pullingDown', () => {
+          this.beforePullDown = false
+          this.isPullingDown = true
+          this.$emit('pullingDown')
+        })
+      },
       _initScroll() {
         if (!this.$refs.wrapper) {
           return
@@ -105,7 +151,9 @@
           mouseWheel: {
             speed: 10
           },
-          preventDefault: this.preventDefault
+          preventDefault: this.preventDefault,
+          pullUpLoad: this.pullUpLoad,
+          pullDownRefresh: this.pullDownRefresh
         })
         // 是否派发滚动事件
         if (this.listenScroll) {
@@ -119,6 +167,14 @@
           this.scroll.on('beforeScrollStart', () => {
             this.$emit('beforeScroll')
           })
+        }
+
+        if (this.pullUpLoad) {
+          this._initPullUpLoad()
+        }
+
+        if (this.pullDownRefresh) {
+          this._initPullDownRefresh()
         }
       }
     },

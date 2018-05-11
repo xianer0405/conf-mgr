@@ -1,19 +1,27 @@
 <template>
-  <scroll class="listview" :data="confs" :refreshDelay="refreshDelay">
-    <ul class="conf-list" v-show="confs && confs.length">
+  <scroll class="listview"
+          ref="listView"
+          :data="devices"
+          :pullUpLoad="true"
+          :pullDownRefresh="true"
+          :refreshDelay="refreshDelay"
+          @pullingUp="pullingUp"
+          @pullingDown="pullingDown">
+    <ul class="device-list" v-show="devices && devices.length">
       <li class="item"
+          ref="device"
           :class="{active: currentIndex === index}"
           :key="index"
-          v-for="(item, index) in confs"
+          v-for="(item, index) in devices"
           @click="selectItem(index)">
-        <span :title="item.confName" class="text">{{item.confName}}</span>
+        <span :title="item.deviceName" class="text">{{item.deviceName}}</span>
         <i class="icon icon-enter"></i>
       </li>
     </ul>
-    <ul class="conf-list" v-show="confs && !confs.length">
-      <li class="item">当前无转播记录</li>
+    <ul class="device-list" v-show="devices && !devices.length">
+      <li class="item">当前无设备记录</li>
     </ul>
-    <div v-show="!confs" class="loading-container">
+    <div v-show="!devices" class="loading-container">
       <loading></loading>
     </div>
   </scroll>
@@ -25,7 +33,7 @@
 
   export default {
     props: {
-      confs: {
+      devices: {
         type: Array,
         default: null
       },
@@ -36,12 +44,29 @@
     },
     data() {
       return {
-        refreshDelay: 1000
+        refreshDelay: 1000,
+        pullingUpCount: 0,
+        pullingDownCount: 0
       }
     },
     methods: {
       selectItem(index) {
         this.$emit('select', index)
+      },
+      pullingUp() {
+        console.log('pullingUp')
+        this.pullingUpCount++
+        console.log(this.pullingUpCount)
+        this.$emit('pullUpLoad')
+      },
+      pullingDown() {
+        console.log('pullingDown')
+        this.pullingDownCount++
+        console.log(this.pullingDownCount)
+        this.$emit('pullingDown')
+      },
+      scrollToElement(index) {
+        this.$refs.listView.scrollToElement(this.$refs.device[index])
       }
     },
     components: {
@@ -58,7 +83,7 @@
   .listview
     position: relative
     background: #fff
-    .conf-list
+    .device-list
       padding: 10px 20px 10px 20px
       background: #fff
       .item

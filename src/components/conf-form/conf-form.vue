@@ -8,7 +8,7 @@
         <input v-model="confName" type='text' class='conf-name' placeholder='请输入转播名称'>
       </div>
       <div class='form-item'>
-        <label class='lbl'>会议类型</label>
+        <label class='lbl'>转播类型</label>
         <div class='conf-types'>
           <div class='conf-type'>
             <input v-model="confType" value="1" type='radio' name='type' id='ont2one'>
@@ -64,6 +64,7 @@
             v-for='(item, index) in selectedMemebers'>
             <i class='icon' :class="item.source ? 'icon-record' : 'icon-people'"></i>
             <span class='name'>{{item.name}}</span>
+            <a target="_blank" class="web-link" :href="webUrl(item)" title="点击进入Web系统">web</a>
             <i @click='delItem(index)' class='icon icon-close'></i>
         </li>
       </ul>
@@ -74,6 +75,8 @@
     </div>
     <modal ref="modal">
     </modal>
+    <modal ref="errorModal" :autoHide="false">
+    </modal>
   </div>
 </template>
 
@@ -82,6 +85,7 @@
   import Modal from 'base/modal/modal'
   import {createConf} from 'api/conf'
   import {searchDevice} from 'api/device'
+  import {getQueryString} from 'common/js/util'
 
   const INVALID_ID = -1
   const CONF_TYPES = {
@@ -118,6 +122,10 @@
       Modal
     },
     methods: {
+      webUrl(device) {
+        console.log(device)
+        return `http://${device.deviceIp}:${device.devicePort}`
+      },
       createConf() {
         if (!this.confName) {
           this.$refs.modal.warn('转播名称不能为空!')
@@ -134,12 +142,15 @@
         let deviceIds = this.selectedMemebers.map((item) => {
           return item.id
         }).join(',')
-        const confReqParam = {confName: this.confName, confType: this.confType, deviceIds}
+        const creatorId = getQueryString('id')
+        const confReqParam = {creatorId, confName: this.confName, confType: this.confType, deviceIds}
         createConf(confReqParam).then((res) => {
           if (res.success) {
             this.$refs.modal.info('创建转播成功!')
+            this.$bus.$emit('confcount-refresh', this.confType)
+            this.resetForm()
           } else {
-            this.$refs.modal.error(res.msg || '创建转播失败!')
+            this.$refs.errorModal.error(res.msg || '创建转播失败!')
           }
         })
       },
@@ -379,6 +390,7 @@
         color: #cdced3
         .item
           padding-left: 6px
+          padding-right: 60px
           line-height: 30px
           border-bottom: 1px solid #ddd
           cursor: pointer
@@ -394,6 +406,14 @@
           height:180px
           .item
             padding-left:30px
+            .web-link
+              display: none
+              position: absolute
+              margin-top: 1px
+              right: 30px
+            &:hover
+              .web-link
+                display: inline
         &.search-result
           position: absolute
           max-height: 280px
@@ -417,7 +437,7 @@
         cursor: pointer
         outline: none
         &:hover
-          background-color: #f3f5fd
+          background-color: #d4e2ff
         &.submit
           margin-left: 20px
           color: #fff

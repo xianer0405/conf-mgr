@@ -77,7 +77,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: 'index.html',
-      chunks: ['app'],
+      chunks: ['manifest', 'vendor','app'],
       inject: true,
       minify: {
         removeComments: true,
@@ -90,19 +90,10 @@ const webpackConfig = merge(baseWebpackConfig, {
       chunksSortMode: 'dependency'
     }),
     new HtmlWebpackPlugin({
-      filename: 'views/test.html',
-      template: 'src/views/test.html',
-      chunks: ['views/test'],
-      inject: true,
-      minify: {
-        removeComments: true,
-        collapseWhitespace: true,
-        removeAttributeQuotes: true
-        // more options:
-        // https://github.com/kangax/html-minifier#options-quick-reference
-      },
-      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      chunksSortMode: 'dependency'
+      filename: 'views/confer.html',
+      template: 'src/views/confer.html',
+      chunks: ['manifest', 'vendor','views/confer'],
+      inject: true
     }),
     // keep module.id stable when vendor modules does not change
     new webpack.HashedModuleIdsPlugin(),

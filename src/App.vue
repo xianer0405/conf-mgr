@@ -1,17 +1,19 @@
 <template>
-  <div class="login">
+  <div class="login" @keydown.enter="login">
     <div class="login-container">
       <header class="logo">
-        <img src="./common/image/logoWhite.png" height="71" width="209" alt="logo">
+        <!-- <img src="./common/image/logoWhite.png" height="71" width="209" alt="logo"> -->
+        <img v-if="!loginLogo.configAttachment && ready" src="./common/image/logoWhite.png" height="71" width="209" alt="KARL STORZ - CONF">
+        <img v-else :src="loginLogo.configAttachment" :alt="loginLogo.configValue" height="71" width="209">
       </header>
       <form class="login-form">
         <div class="form-item">
           <label for="username" class="form-lbl">用户名：</label>
-          <input class="username" v-model.lazy="username"/>
+          <input class="username" v-model="username"/>
         </div>
         <div class="form-item">
           <label for="password" class="form-lbl">密&nbsp;&nbsp;&nbsp;&nbsp;码：</label>
-          <input class="password" type="password" v-model.lazy="password"/>
+          <input class="password" type="password" v-model="password"/>
         </div>
         <div class="form-item msg-container" :class="{'error': msg}">
           <span class="title"><i class=""></i>{{msg}}</span>
@@ -28,6 +30,7 @@
 <script type="text/ecmascript-6">
   import {login} from 'api/login'
   import {ERR_OK} from 'common/js/config'
+  import {loadLoginLogo} from 'api/sysconfig'
 
   export default {
     name: 'App',
@@ -35,7 +38,9 @@
       return {
         username: '',
         password: '',
-        msg: ''
+        msg: '',
+        loginLogo: {},
+        ready: false
       }
     },
     methods: {
@@ -48,12 +53,32 @@
               this.msg = ''
             }, 3000)
           } else {
-            window.location.href = './views/confer.html'
+            const loginUser = res.bizData.sysUser
+            window.location.href = './views/confer.html?id=' + loginUser.id
           }
         }).catch((err) => {
           console.log(err)
         })
+      },
+      _loadLoginLogo() {
+        loadLoginLogo().then((res) => {
+          if (res.success) {
+            var loginLogo = res.bizData.entity
+            if (loginLogo && loginLogo.configAttachment) {
+              this.loginLogo = loginLogo
+            }
+          }
+          setTimeout(() => {
+            this.ready = true
+          }, 300)
+        }).catch(() => {
+          console.log('loadLoginLogo catch')
+          this.ready = true
+        })
       }
+    },
+    mounted () {
+      this._loadLoginLogo()
     }
   }
 </script>

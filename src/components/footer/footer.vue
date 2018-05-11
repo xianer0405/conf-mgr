@@ -39,41 +39,46 @@
           text: '一对一转播',
           iconClass: 'icon-people',
           showCount: true,
-          confCount: 0
+          confCount: 0,
+          confType: 1
         }, {
           path: '/one2many',
           text: '一对多转播',
           iconClass: 'icon-duoren',
           showCount: true,
-          confCount: 0
+          confCount: 0,
+          confType: 2
         }, {
           path: '/many2many',
           text: '多对多转播',
           iconClass: 'icon-qunzuduoren',
           showCount: true,
-          confCount: 0
+          confCount: 0,
+          confType: 3
         }, {
-          path: '/record',
+          path: '/push2third/false',
+          text: '推送第三方',
+          iconClass: 'icon-upload'
+        }, {
+          path: '/record/true',
           text: '录像管理',
           iconClass: 'icon-record',
-          disabled: true
+          disabled: true,
+          linkUrl: 'http://www.baidu.com',
+          linkTitle: 'MediaSite系统'
         }, {
-          path: '/push2third',
-          text: '推送第三方',
-          iconClass: 'icon-upload',
-          disabled: true
-        }, {
-          path: '/link2or1',
+          path: '/link2or1/true',
           text: '连接OR1.NET',
           iconClass: 'icon-yun',
-          disabled: true
+          disabled: true,
+          linkUrl: 'http://61.151.156.60:8400/kscc/',
+          linkTitle: 'OR1.NET系统'
         }
         ]
       }
     },
     watch: {
       confCounts() {
-        console.log(this.confCounts)
         this.$set(this.menuList[1], 'confCount', this.confCounts[0].confCount)
         this.$set(this.menuList[2], 'confCount', this.confCounts[1].confCount)
         this.$set(this.menuList[3], 'confCount', this.confCounts[2].confCount)
@@ -81,9 +86,7 @@
     },
     methods: {
       selectItem(item) {
-        console.log(JSON.stringify(item))
         this.$emit('routerChange', item)
-        console.log('emit')
       }
     }
   }

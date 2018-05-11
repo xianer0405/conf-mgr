@@ -11,7 +11,9 @@
         <div class="content-wrapper" v-if="modalType === 1">
           <i class="icon" :class="iconCls" v-if="showIcon"></i>
           <div class="content tip">
-            <slot>{{message}}</slot>
+            <slot>
+              <div @click.stop="messageClick($event)" v-html="message"></div>
+            </slot>
           </div>
         </div>
         <div class="content-wrapper" v-if="modalType !== 1">
@@ -20,7 +22,7 @@
           </div>
         </div>
         <div class="bottom" v-if="modalType !== 1 && showBottom">
-          <span class="btn cancel" v-if="modalType === 3" @click.stop="cancel">取&nbsp;&nbsp;消</span>
+          <span class="btn cancel" v-if="modalType === 3 || modalType === 4" @click.stop="cancel">取&nbsp;&nbsp;消</span>
           <span class="btn submit" @click.stop="confirm">确&nbsp;&nbsp;认</span>
         </div>
       </div>
@@ -49,7 +51,7 @@
       },
       modalType: {
         type: Number,
-        default: 1 /* 1:提示类， 2：确认类 3：确认取消类 */
+        default: 1 /* 1:提示类， 2：确认类 3：确认取消类 4：Form表单类型 */
       },
       autoHide: {
         type: Boolean,
@@ -78,13 +80,18 @@
       }
     },
     methods: {
+      messageClick(event) {
+        this.$emit('messageClick', event)
+      },
       cancel() {
         this.$emit('cancel')
         this.showFlag = false
       },
       confirm() {
         this.$emit('confirm')
-        this.showFlag = false
+        if (this.modalType !== 4) {
+          this.showFlag = false
+        }
       },
       show(msg) {
         if (msg) {
@@ -94,7 +101,7 @@
         if (this.timer) {
           clearTimeout(this.timer)
         }
-        if (this.autoHide && this.modalType !== 3) {
+        if (this.autoHide && this.modalType !== 3 && this.modalType !== 4) {
           this._autoHide()
         }
       },
@@ -116,9 +123,7 @@
         this.messageType = 1
       },
       hideByClickShadow() {
-        if (this.modalType !== 3) {
-          this.showFlag = false
-        }
+        this.showFlag = false
       },
       _autoHide() {
         this.timer = setTimeout(() => {
@@ -166,7 +171,8 @@
       transform: translate3d(-50%, -50%, 0)
       background-color: #fff
       border-radius: 4px
-      box-shadow: 2px 2px 3px #cecece
+      /* box-shadow: 2px 2px 3px #cecece */
+      box-shadow: 3px 3px 15px rgba(0,0,0,.5);
       .header
         line-height: 40px
         overflow:hidden
@@ -196,7 +202,6 @@
         .icon
           position: absolute
           top:50%
-          margin-top: 3px
           font-size: 18px
           transform: translate3d(0, -50%, 0)
           color: #3c78e6

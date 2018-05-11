@@ -25,7 +25,7 @@
             <li class="table-cell">{{item.configValue}}</li>
             <li class="table-cell upload-cell">
               <i class="icon icon-image" title="点击预览" @click.stop="imagePreview(item.id)"></i>
-              <label class="lbl-upload" :for="'logoUpload'+item.id">上传</label>
+              <label class="lbl-upload" :for="'logoUpload'+item.id">上&nbsp;传</label>
               <input accept="image/png,image/jpeg,image/jpg,image/gif" type="file" name="" :id="'logoUpload' + item.id" @change="uploadLogoImage(item.id, $event)">
             </li>
             <li class="table-cell">{{item.formatedCreateTime}}</li>
@@ -36,6 +36,7 @@
     <modal ref="previewModal" :autoHide="false" :modalType="2" :showHeader="false" :showBottom="false" :showIcon="false">
       <div class="preview-wrapper">
         <img style="max-width: 300px" class="logo-preivew" :src="imagePreviewUrl" v-show="imagePreviewUrl"/>
+        <span class="preview-text">{{imagePreviewText}}</span>
       </div>
     </modal>
     <modal ref="tipModal">
@@ -51,7 +52,8 @@
     data() {
       return {
         sysConfigList: [],
-        imagePreviewUrl: ''
+        imagePreviewUrl: '',
+        imagePreviewText: ''
       }
     },
     methods: {
@@ -63,7 +65,7 @@
         }
         const config = this.sysConfigList[fIndex]
         this.imagePreviewUrl = config.configAttachment
-        console.log(this.imagePreviewUrl)
+        this.imagePreviewText = config.configValue
         this.$refs.previewModal.show()
       },
       uploadLogoImage(sysConfigId, event) {
@@ -72,9 +74,10 @@
           'sysConfigId': sysConfigId
         }).then((res) => {
           if (res.success) {
-            const fIndex = this.findIndex(sysConfigId)
+            /* const fIndex = this.findIndex(sysConfigId)
             const config = this.sysConfigList[fIndex]
-            config.configAttachment = res.bizData.entity.configAttachment
+            config.configAttachment = res.bizData.entity.configAttachment */
+            this._loadSysConfig()
             this.$refs.tipModal.show('上传成功')
           } else {
             this.$refs.tipModal.show(res.msg || '上传失败')
@@ -111,7 +114,16 @@
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import '~common/stylus/variable'
   @import '~common/stylus/mixin.styl'
-
+  .preview-wrapper
+    position: relative
+    background: #3c78e6
+    .preview-text
+      position: absolute
+      left: 0
+      bottom: 3px
+      width: 100%
+      line-height: 20px
+      color: #fff
   .area-config
     padding-top: 40px
     .list-content
@@ -159,7 +171,7 @@
               margin-left: 20px
               line-height: 20px
               text-align: center
-              border-radius: 5px
+              border-radius: 30px
               color: #5476B2
               background: #e6e7fd
               cursor: pointer

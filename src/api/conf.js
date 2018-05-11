@@ -1,22 +1,25 @@
 import axios from 'axios'
+import { env } from 'common/js/config'
 const qs = require('qs')
+const isProd = env === 'prod'
+axios.defaults.withCredentials = true
 
 export function createConf(reqParam) {
-  const url = '/apis/api/confer/start'
+  const url = isProd ? '../api/confer/start' : '/apis/api/confer/start'
   // 参数必须通过qs.stringify()转化后才能被后台识别
   return httpRequest(url, reqParam)
 }
 
 export function loadConfs(reqParam) {
-  const url = '/apis/api/conferRecord/list'
+  const url = isProd ? '../api/conferRecord/list' : '/apis/api/conferRecord/list'
   // 参数必须通过qs.stringify()转化后才能被后台识别
   return httpRequest(url, reqParam)
 }
 
-export function queryConfCount() {
-  const url = '/apis/api/conferRecord/queryConfCount'
+export function queryConfCount(reqParam) {
+  const url = isProd ? '../api/conferRecord/queryConfCount' : '/apis/api/conferRecord/queryConfCount'
   // 参数必须通过qs.stringify()转化后才能被后台识别
-  return httpRequest(url)
+  return httpRequest(url, reqParam)
 }
 
 /*
@@ -27,52 +30,37 @@ export function queryConfCount() {
   private boolean mute ;//静音 or 哑音
 */
 export function volumeMute(reqParam) {
-  const url = '/apis/api/confer/volume'
+  const url = isProd ? '../api/confer/volume' : '/apis/api/confer/volume'
   // 参数必须通过qs.stringify()转化后才能被后台识别
   return httpRequest(url, reqParam)
 }
 
 export function deleteMember(reqParam) {
-  const url = '/apis/api/confer/remove'
+  const url = isProd ? '../api/confer/remove' : '/apis/api/confer/remove'
   // 参数必须通过qs.stringify()转化后才能被后台识别
   return httpRequest(url, reqParam)
 }
 
 export function addMembers(reqParam) {
-  const url = '/apis/api/confer/join'
+  const url = isProd ? '../api/confer/join' : '/apis/api/confer/join'
   // 参数必须通过qs.stringify()转化后才能被后台识别
   return httpRequest(url, reqParam)
 }
 
 export function endConf(reqParam) {
-  const url = '/apis/api/confer/end'
+  const url = isProd ? '../api/confer/end' : '/apis/api/confer/end'
   return httpRequest(url, reqParam)
 }
 
-export function loadVmp(reqParam) {
-  // const url = '/apis/api/confer/vmp'
-  const vmp = {
-    'mode': 1,
-    'layout': 35,
-    'members': [
-      {
-        'id': 1,
-        'deviceName': '设备1',
-        'chnIdx': 1
-      },
-      {
-        'id': 2,
-        'deviceName': '设备2',
-        'chnIdx': 2
-      },
-      {
-        'id': 4,
-        'deviceName': '设备4',
-        'chnIdx': 4
-      }
-    ]
-  }
-  return Promise.resolve(vmp)
+export function loadBroadcastSource(reqParam) {
+  const url = isProd ? '../api/confer/getBroadcastSource' : '/apis/api/confer/getBroadcastSource'
+  return httpRequest(url, reqParam)
+  // return Promise.resolve(vmp)
+}
+
+export function setBroadcastSource(reqParam) {
+  const url = isProd ? '../api/confer/setBroadcastSource' : '/apis/api/confer/setBroadcastSource'
+  return httpRequest(url, reqParam)
 }
 
 function httpRequest(url, reqParam) {

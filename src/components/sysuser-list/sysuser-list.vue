@@ -10,7 +10,7 @@
                placeholder="根据名称模糊搜索">
         <i class="icon icon-search" @click.stop="searchSysUser"></i>
       </div>
-      <div class="add-wrapper" @click.stop="openAddSysUserModal">
+      <div class="add-wrapper" @click.stop="openSysUserFormModal()">
         <i class="icon icon-add"></i>
         <a href="#" class="add-link">添加</a>
       </div>
@@ -56,13 +56,13 @@
             <li class="table-cell">{{item.id}}</li>
             <li class="table-cell">{{item.loginId}}</li>
             <li class="table-cell">{{item.username}}</li>
-            <li class="table-cell">{{item.phone}}</li>
-            <li class="table-cell">{{item.email}}</li>
+            <li class="table-cell">{{item.phone ? item.phone : '--'}}</li>
+            <li class="table-cell">{{item.email ? item.email: '--'}}</li>
             <li class="table-cell">{{item.dept ? item.dept: '--'}}</li>
             <li class="table-cell">{{item.formatedCreateTime ? item.formatedCreateTime : '--'}}</li>
-            <li class="table-cell">
-              <a href="#" class="edit">编辑</a>
-              <a href="#" class="delete">删除</a>
+            <li class="table-cell oper-cell">
+              <a href="#" class="edit" @click.stop="openSysUserFormModal(item)">编辑</a>
+              <a href="#" class="delete" @click.stop="openDeleteModal(item)">删除</a>
             </li>
           </ul>
         </div>
@@ -74,12 +74,60 @@
       <span class="prev page-btn" :class="prevCls()" @click.stop="prev">上一页</span>
       <span class="next page-btn" :class="nextCls()" @click.stop="next">下一页</span>
     </div>
+    <modal ref="addModal"
+           :title="sysUserFormTitle"
+           :autoHide="false"
+           :modalType="4"
+           @confirm="submitSysUserForm"
+           @cancel="cancelSysUserForm">
+      <div class="add-form">
+        <div class="form-item">
+          <label class="form-lbl">登录ID:</label>
+          <input type='text' name="loginId" v-model="currentSysUser.loginId">
+          <input type='hidden' class='login-id' name="sysUserId" v-model="currentSysUser.id">
+          <span class="form-required-mask">*</span>
+        </div>
+        <div class="form-item">
+          <label class="form-lbl">用户姓名:</label>
+          <input type='text' class='username' name="username" v-model="currentSysUser.username" autocomplete="off">
+          <span class="form-required-mask">*</span>
+        </div>
+        <div class="form-item">
+          <label class="form-lbl">用户类型:</label>
+          <select class="sysuser-type" name="sysUserType" v-model="currentSysUser.type">
+            <option value="2" selected>操作员</option>
+            <option value="1">管理员</option>
+          </select>
+        </div>
+        <div class="form-item" v-show="!currentSysUser.id">
+          <label class="form-lbl">用户密码:</label>
+          <input type='password' class='password' name="password" v-model="currentSysUser.password" autocomplete="off">
+          <span class="form-required-mask">*</span>
+        </div>
+        <div class="form-item">
+          <label class="form-lbl">联系电话:</label>
+          <input type='text' class='phone' name="phone" v-model="currentSysUser.phone">
+        </div>
+        <div class="form-item">
+          <label class="form-lbl">电子邮箱:</label>
+          <input type='text' class='email' name="email" v-model="currentSysUser.email">
+        </div>
+        <div class="form-item">
+          <label class="form-lbl">所在部门:</label>
+          <input type='text' class='dept' name="dept" v-model="currentSysUser.dept">
+        </div>
+      </div>
+    </modal>
+    <modal @confirm="deleteSysUser" @cancel="cancelDelete" :modalType="3" :autoHide="false" ref="deleteSysUserModal">
+      <p>确认删除该用户吗?</p>
+    </modal>
+    <modal ref="tipModal"></modal>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
   import Modal from 'base/modal/modal'
-  import {listSysUser} from 'api/sysuser'
+  import {listSysUser, deleteSysUser, addSysUser, updateSysUser} from 'api/sysuser'
 
   const pageCount = 10
   export default {
@@ -91,10 +139,108 @@
         searchInput: '',
         sysUserList: [],
         currentPageNum: 1,
-        totalCount: 0
+        totalCount: 0,
+        currentSysUser: {},
+        sysUserFormTitle: ''
       }
     },
     methods: {
+      openSysUserFormModal(sysUser) {
+        if (sysUser) {
+          this.sysUserFormTitle = '编辑'
+          const {id, loginId, username, password, phone, email, dept, type} = sysUser
+          this.currentSysUser = {id, loginId, username, password, phone, email, dept, type}
+        } else {
+          this.sysUserFormTitle = '新增'
+          this.currentSysUser = {type: 2}
+        }
+        this.$refs.addModal.show()
+      },
+      submitSysUserForm() {
+        if (!this.checkSysUserForm()) {
+          return false
+        }
+        if (this.currentSysUser) {
+          if (this.currentSysUser.id) {
+            updateSysUser(this.currentSysUser).then((res) => {
+              if (res.success) {
+                this.$refs.tipModal.show('修改用户信息成功')
+                this._refreshSysUser()
+              } else {
+                this.$refs.tipModal.show('修改用户失败')
+              }
+            }).catch((err) => {
+              console.log(err)
+            }).finally(() => {
+              this.$refs.addModal.hide()
+            })
+          } else {
+            addSysUser(this.currentSysUser).then((res) => {
+              if (res.success) {
+                this.$refs.tipModal.show('添加用户成功')
+                this._refreshSysUser()
+              } else {
+                this.$refs.tipModal.show('添加用户失败')
+              }
+            }).catch((err) => {
+              console.log(err)
+            }).finally(() => {
+              this.$refs.addModal.hide()
+            })
+          }
+        } else {
+          this.$refs.addModal.hide()
+          this.$refs.tipModal.show('操作失败，刷新界面后重试!')
+        }
+      },
+      checkSysUserForm() {
+        if (!this.currentSysUser.loginId) {
+          this.$refs.tipModal.show('登录ID不能为空!')
+          return false
+        }
+        if (!this.currentSysUser.username) {
+          this.$refs.tipModal.show('用户姓名不能为空!')
+          return false
+        }
+        if (!this.currentSysUser.password) {
+          this.$refs.tipModal.show('登录密码不能为空!')
+          return false
+        }
+        return true
+      },
+      cancelSysUserForm() {
+        this.sysUserFormTitle = ''
+        this.currentSysUser = {}
+      },
+      openDeleteModal(sysUser) {
+        this.toDeleteSysUser = sysUser
+        this.$refs.deleteSysUserModal.show()
+      },
+      cancelDelete() {
+        this.toDeleteSysUser = null
+      },
+      deleteSysUser() {
+        if (!this.toDeleteSysUser) {
+          return
+        }
+        const toDeleteSysUser = this.toDeleteSysUser
+        /* console.log(toDeleteSysUser)
+        const {id, username} = {toDeleteSysUser}
+        console.log(id, username)
+        const {id: sysUserId} = {toDeleteSysUser} */
+        const param = {sysUserId: toDeleteSysUser.id}
+        console.log(param)
+        deleteSysUser(param).then((res) => {
+          if (res.success) {
+            this.$refs.tipModal.show(`用户[${toDeleteSysUser.username}]删除成功!`)
+            this._refreshSysUser()
+          } else {
+            this.$refs.tipModal.show(`用户[${toDeleteSysUser.username}]删除失败!`)
+          }
+        }).finally(() => {
+          this.toDeleteSysUser = null
+        })
+      },
       openAddDeviceModal() {
       },
       prev() {
@@ -145,6 +291,10 @@
           this.listReady = true
         })
       },
+      _refreshSysUser() {
+        const skip = (this.currentPageNum - 1) * pageCount
+        this._doSearch(this.searchKey, skip, pageCount)
+      },
       _initSysUser() {
         this.listReady = false
         this.searchKey = ''
@@ -168,6 +318,49 @@
   @import '~common/stylus/variable'
   @import '~common/stylus/mixin.styl'
 
+  .add-form
+    width: 400px
+    font-size: 14px
+    text-align: left
+    .form-item
+      line-height: 40px
+      .form-lbl
+        display: inline-block
+        margin-right: 15px
+        width: 120px
+        text-align: right
+      .form-required-mask
+        position: absolute
+        margin-left: 5px
+        color: red
+      input
+        width: 160px
+        height: 24px
+        padding-left: 5px
+        padding-right: 20px
+        border: 1px solid #eaeef3
+        border-radius: 3px
+        background-color: #f3f5fd
+        outline: none
+        -webkit-transition: border-color ease-in-out 0.15s
+        transition: border-color ease-in-out 0.15s
+        &:focus
+          border-color: #c6c6c6
+      select
+        width: 188px
+        height: 24px
+        padding-left: 5px
+        border: 1px solid #eaeef3
+        border-radius: 3px
+        background-color: #f3f5fd
+        outline: none
+        -webkit-transition: border-color ease-in-out 0.15s
+        transition: border-color ease-in-out 0.15s
+        &:focus
+          border-color: #c6c6c6
+      input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill
+        background-color: #f3f5fd !important
+        color: rgb(0, 0, 0) !important
   .sysuser-list
     .list-header
       height: 40px
@@ -208,6 +401,7 @@
         text-align: center
         border: 1px solid #EAEEF3
         border-radius: 3px
+        cursor: pointer
     .list-content
       height: 320px
       .table
@@ -290,6 +484,11 @@
         border: 1px solid #EAEEF3
         border-radius: 3px
         cursor: pointer
+        -moz-user-select:none
+        -webkit-user-select:none
+        -ms-user-select:none
+        -khtml-user-select:none
+        user-select:none
         &.active
           &:hover
             color: #fff
