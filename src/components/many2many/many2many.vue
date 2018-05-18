@@ -21,7 +21,7 @@
                               :title="item.deviceName"
                               :kid="item.id"
                               :showIcons="showIconsOfMembers[index]"
-                              :imageUrl="item.attachment ? item.attachment.fileUrl :defaultImageUrl"
+                              :imageUrl="item.attachment ? imagePathConvert(item.attachment.fileUrl) :defaultImageUrl"
                               @iconClick="memberOper">
                   </image-view>
                 </div>
@@ -320,11 +320,13 @@
   import Loading from 'base/loading/loading'
   import ImageView from 'base/image-view/image-view'
   import AddMember from 'components/add-member/add-member'
-  import {loadConfs, loadBroadcastSource, setBroadcastSource, endConf, deleteMember, addMembers, volumeMute} from 'api/conf'
+  import {loadConfs, loadBroadcastSource, setBroadcastSource, endConf, deleteMember, addMembers, volumeMute, switchMatrixToLocal, switchMatrixToRemote, recordConfig} from 'api/conf'
   import {addClass, findBySelector, dataAttr, removeClass} from 'common/js/dom'
   import {loadDevices, loadDevicesVolumeState} from 'api/device'
-  import {IMAGE_ICONS} from 'common/js/config'
-  import {getQueryString} from 'common/js/util'
+  import {IMAGE_ICONS, env} from 'common/js/config'
+  import {getQueryString, pathConvert} from 'common/js/util'
+
+  const isProd = env === 'prod'
 
   const CONF_TYPE = 3
   const VMP_LAYOUT = {
@@ -378,6 +380,9 @@
       }
     },
     methods: {
+      imagePathConvert(imagePath) {
+        return pathConvert(isProd, imagePath)
+      },
       memberOper(operParam) {
         if (!this.confReady) {
           this.$refs.tipModal.error('正在加载转播状态!')
@@ -414,6 +419,10 @@
         }
       },
       speakerOper(speakerReq, operParam) {
+        if (!this.confReady) {
+          this.$refs.tipModal.error('正在加载转播状态!')
+          return false
+        }
         speakerReq.broadcastSourceType = BCS_TYPE.SPEAKER_BCS_TYPE
         speakerReq.vmpParam = null
         const bcsJsonReq = JSON.stringify(speakerReq)
@@ -439,6 +448,10 @@
         })
       },
       vmpOper() {
+        if (!this.confReady) {
+          this.$refs.tipModal.error('正在加载转播状态!')
+          return false
+        }
         if (this.currentLayout === VMP_LAYOUT.NULL_VMP) {
           this.$refs.tipModal.error('请选择画面合成风格!')
           return false
@@ -502,6 +515,7 @@
             that.confList[this.currIndex] = updatedConf
             console.log(that.confList)
             this._refreshCurrConf(this.confList[this.currIndex])
+            this._switcchMatrixToLocal(confReq.deviceIds)
             that.$refs.tipModal.info('操作成功!')
           } else {
             that.$refs.tipModal.info('操作失败!')
@@ -576,6 +590,7 @@
             const updatedConf = res.bizData.entity
             that.confList[this.currIndex] = updatedConf
             that._refreshCurrConf(this.confList[this.currIndex])
+            this._switcchMatrixToRemote(deviceIds)
             that.$refs.tipModal.info('操作成功!')
           } else {
             that.$refs.tipModal.info('操作失败!')
@@ -595,6 +610,7 @@
           this.$refs.tipModal.show('请选中要操作的会议')
           return
         }
+        const deviceIds = this.confMemberIds.slice().join(',')
         const {confId, confType} = this.currConf
         endConf({confId, confType}).then((res) => {
           if (res.success) {
@@ -602,10 +618,37 @@
             this.clearVmp()
             this._loadConfList()
             this._resetCurrConf()
+            this._switcchMatrixToLocal(deviceIds)
+            this._recordConfifg(deviceIds)
             this.$bus.$emit('conf-change', confId)
           } else {
-            this.$refs.tipModal.info('失败成功!')
+            this.$refs.tipModal.info('操作失败!')
           }
+        })
+      },
+      _recordConfifg(deviceIds) {
+        recordConfig({deviceIds, cmd: 0}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
+        })
+      },
+      _switcchMatrixToLocal(deviceIds) {
+        console.log('切换本地矩阵输出本地源')
+        console.log(deviceIds)
+        switchMatrixToLocal({deviceIds}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
+        })
+      },
+      _switcchMatrixToRemote(deviceIds) {
+        console.log('切换本地矩阵输出远端源')
+        console.log(deviceIds)
+        switchMatrixToRemote({deviceIds}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
         })
       },
       initConfState() {
@@ -735,13 +778,16 @@
         }
       },
       _refreshCurrConf(newCurrConf) {
+        console.log(newCurrConf)
         this.confReady = false
         this.currConf = newCurrConf
-        const deviceIds = this.currConf.members
-        this._loadConfMembers(deviceIds)
         this._refreshConfList()
-        this.loadBroadcastSource()
-        this._loadVolumeState(deviceIds)
+        if (newCurrConf) {
+          const deviceIds = this.currConf.members
+          this._loadConfMembers(deviceIds)
+          this.loadBroadcastSource()
+          this._loadVolumeState(deviceIds)
+        }
       },
       _resetCurrConf() {
         this.currIndex = 1

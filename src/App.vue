@@ -4,7 +4,7 @@
       <header class="logo">
         <!-- <img src="./common/image/logoWhite.png" height="71" width="209" alt="logo"> -->
         <img v-if="!loginLogo.configAttachment && ready" src="./common/image/logoWhite.png" height="71" width="209" alt="KARL STORZ - CONF">
-        <img v-else :src="loginLogo.configAttachment" :alt="loginLogo.configValue" height="71" width="209">
+        <img v-else :src="imagePathConvert(loginLogo.configAttachment)" :alt="loginLogo.configValue" height="71" width="209">
       </header>
       <form class="login-form">
         <div class="form-item">
@@ -29,8 +29,10 @@
 
 <script type="text/ecmascript-6">
   import {login} from 'api/login'
-  import {ERR_OK} from 'common/js/config'
+  import {ERR_OK, env} from 'common/js/config'
   import {loadLoginLogo} from 'api/sysconfig'
+  import {pathConvert} from 'common/js/util'
+  const isProd = env === 'prod'
 
   export default {
     name: 'App',
@@ -44,6 +46,9 @@
       }
     },
     methods: {
+      imagePathConvert(imagePath) {
+        return pathConvert(isProd, imagePath)
+      },
       login(e) {
         // 调用API，查询用户数据
         login(this.username, this.password).then((res) => {
@@ -92,16 +97,19 @@
     height: 100%;
     background: $color-background
     .login-container
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      margin: auto;
-      width: 320px;
-      height: 300px;
+      position: absolute
+      left: 0
+      right: 0
+      top: 0
+      bottom: 0
+      margin: auto
+      width: 320px
+      height: 300px
       text-align: center
-      color: #fff;
+      color: #fff
+      .logo > img
+        outline: none
+        border: 0
       .login-form
         margin: 20px 0
         padding: 0 20px

@@ -17,14 +17,14 @@
                       :kid="confMemberIds[0]"
                       @iconClick="memberOper"
                       :showIcons="showIconsArray[0]"
-                      :imageUrl="confMembers[0].attachment ? confMembers[0].attachment.fileUrl : defaultImageUrl"></image-view>
+                      :imageUrl="confMembers[0].attachment ? imagePathConvert(confMembers[0].attachment.fileUrl) : defaultImageUrl"></image-view>
         </div>
         <div class="member-wrapper" v-if="confReady">
           <image-view :title="confMembers[1].deviceName"
                       :kid="confMemberIds[1]"
                       @iconClick="memberOper"
                       :showIcons="showIconsArray[1]"
-                      :imageUrl="confMembers[1].attachment ? confMembers[1].attachment.fileUrl : defaultImageUrl"></image-view>
+                      :imageUrl="confMembers[1].attachment ? imagePathConvert(confMembers[1].attachment.fileUrl) : defaultImageUrl"></image-view>
         </div>
         <div class="conf-oper" @click.stop="openEndConfModal">
           <i class="icon icon-finish"></i>
@@ -47,10 +47,12 @@
   import Loading from 'base/loading/loading'
   import ConfList from 'components/conf-list/conf-list'
   import ImageView from 'base/image-view/image-view'
-  import {loadConfs, endConf, volumeMute} from 'api/conf'
+  import {loadConfs, endConf, volumeMute, switchMatrixToLocal, recordConfig} from 'api/conf'
   import {loadDevices, loadDevicesVolumeState} from 'api/device'
-  import {IMAGE_ICONS} from 'common/js/config'
-  import {getQueryString} from 'common/js/util'
+  import {IMAGE_ICONS, env} from 'common/js/config'
+  import {getQueryString, pathConvert} from 'common/js/util'
+
+  const isProd = env === 'prod'
 
   const CONF_TYPE = 1
 
@@ -73,20 +75,41 @@
     computed: {
     },
     methods: {
+      imagePathConvert(imagePath) {
+        return pathConvert(isProd, imagePath)
+      },
       openEndConfModal() {
         this.$refs.endConfModal.show()
       },
       endConf() {
+        const deviceIds = this.confMemberIds.slice().join(',')
         const {confId, confType} = this.currConf
         endConf({confId, confType}).then((res) => {
           if (res.success) {
             this.$refs.modal.info('操作成功!')
             this._loadConfList()
             this._resetCurrConf()
+            this._switcchMatrixToLocal(deviceIds)
+            this._recordConfifg(deviceIds)
             this.$bus.$emit('conf-change', confId)
           } else {
             this.$refs.modal.info('失败成功!')
           }
+        })
+      },
+      _recordConfifg(deviceIds) {
+        recordConfig({deviceIds, cmd: 0}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
+        })
+      },
+      _switcchMatrixToLocal(deviceIds) {
+        console.log('切换本地矩阵输出本地源')
+        switchMatrixToLocal({deviceIds}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
         })
       },
       memberOper(param) {

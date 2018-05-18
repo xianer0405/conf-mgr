@@ -64,16 +64,24 @@
             <li class="table-cell select-cell">
               <select class="mediaparameter" @change="setMediaparameter(item, index, $event)" :value="getMediaParameter(index)">
                 <option value="2">HD</option>
-                <option value="3">Spise</option>
+                <option value="3">Spies</option>
                 <option value="1">人像模式</option>
               </select>
             </li>
             <li class="table-cell select-cell">
               <select class="bitrate" @change="setBitrate(item, index, $event)" :value="getBitrate(index)">
-                <option value="1048">1M</option>
-                <option value="2048">2M</option>
-                <option value="4096">4M</option>
-                <option value="8192">8M</option>
+                <option value="1048">1048Kb</option>
+                <option value="2048">2048Kb</option>
+                <option value="4096">4096Kb</option>
+                <option value="6144">6144Kb</option>
+                <option value="7168">8128Kb</option>
+                <option value="8128">8192Kb</option>
+                <option value="16284">16384Kb</option>
+                <option value="20480">20480Kb</option>
+                <option value="30720">30720Kb</option>
+                <option value="51200">51200Kb</option>
+                <option value="61440">61440Kb</option>
+                <option value="81280">81280Kb</option>
               </select>
             </li>
             <li class="table-cell select-cell">
@@ -156,7 +164,7 @@
     </modal>
     <modal ref="previewModal" :autoHide="false" :modalType="2" :showHeader="false" :showBottom="false" :showIcon="false">
       <div class="preview-wrapper">
-        <img style="max-width: 300px" class="logo-preivew" :src="imagePreviewUrl" v-show="imagePreviewUrl"/>
+        <img style="max-width: 300px" class="logo-preivew" :src="imagePathConvert(imagePreviewUrl)" v-show="imagePreviewUrl"/>
         <span class="preview-text">{{imagePreviewText}}</span>
       </div>
     </modal>
@@ -169,7 +177,11 @@
 
 <script type="text/ecmascript-6">
   import Modal from 'base/modal/modal'
+  import {pathConvert} from 'common/js/util'
+  import {env} from 'common/js/config'
   import {listDevice, deleteDevice, uploadDeviceImage, addDevice, updateDevice, getMediaParameters, getEncodeConfigs, setMediaParameter, setEncodeConfig} from 'api/device'
+
+  const isProd = env === 'prod'
 
   const pageCount = 10
   export default {
@@ -200,6 +212,9 @@
       }
     },
     methods: {
+      imagePathConvert(imagePath) {
+        return pathConvert(isProd, imagePath)
+      },
       loadMediaParameters() {
         const deviceIdArr = this.deviceList.map((item) => {
           return item.id

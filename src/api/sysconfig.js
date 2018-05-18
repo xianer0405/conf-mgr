@@ -32,3 +32,11 @@ export function loadLoginLogo() {
     return Promise.resolve(res.data)
   })
 }
+
+export function loadThirdLinks() {
+  const url = isProd ? '../api/sysconfig/thirdLinks' : '/apis/api/sysconfig/thirdLinks'
+  // 参数必须通过qs.stringify()转化后才能被后台识别
+  return axios.post(url).then((res) => {
+    return Promise.resolve(res.data)
+  })
+}

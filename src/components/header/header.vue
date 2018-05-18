@@ -2,7 +2,7 @@
   <header class="header">
     <div class="logo left">
       <img v-if="!mainLogo && ready" :src="defaultLogoPath" alt="KARL STORZ - CONF">
-      <img v-if="mainLogo" style="width: 117; height: 40px" :src="mainLogo.configAttachment" alt="mainLogo.configValue">
+      <img v-if="mainLogo" style="width: 117; height: 40px" :src="imagePathConvert(mainLogo.configAttachment)" alt="mainLogo.configValue">
     </div>
     <div class="right">
       <ul class="menu">
@@ -55,8 +55,10 @@
   import {loadMainLogo} from 'api/sysconfig'
   import {logout} from 'api/login'
   import {getLoginUser, modifyPassword} from 'api/sysuser'
-  import {getQueryString} from 'common/js/util'
+  import {getQueryString, pathConvert} from 'common/js/util'
   import { env } from 'common/js/config'
+
+  const isProd = env === 'prod'
 
   const loginUrl = env === 'prod' ? '../index.html' : '../../'
   export default {
@@ -73,6 +75,9 @@
       }
     },
     methods: {
+      imagePathConvert(imagePath) {
+        return pathConvert(isProd, imagePath)
+      },
       submitModifyPassword() {
         if (!this.checkModifyPassForm()) {
           return false

@@ -47,6 +47,10 @@
 <script type="text/ecmascript-6">
   import Modal from 'base/modal/modal'
   import {listSysConfig, uploadLogoImage} from 'api/sysconfig'
+  import {pathConvert} from 'common/js/util'
+  import {env} from 'common/js/config'
+
+  const isProd = env === 'prod'
 
   export default {
     data() {
@@ -57,6 +61,9 @@
       }
     },
     methods: {
+      imagePathConvert(imagePath) {
+        return pathConvert(isProd, imagePath)
+      },
       imagePreview(sysConfigId) {
         console.log(sysConfigId)
         const fIndex = this.findIndex(sysConfigId)
@@ -64,7 +71,7 @@
           return
         }
         const config = this.sysConfigList[fIndex]
-        this.imagePreviewUrl = config.configAttachment
+        this.imagePreviewUrl = this.imagePathConvert(config.configAttachment)
         this.imagePreviewText = config.configValue
         this.$refs.previewModal.show()
       },

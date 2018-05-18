@@ -63,6 +63,21 @@ export function setBroadcastSource(reqParam) {
   return httpRequest(url, reqParam)
 }
 
+export function switchMatrixToLocal(reqParam) {
+  const url = isProd ? '../api/confer/switchMatrixToLocal' : '/apis/api/confer/switchMatrixToLocal'
+  return httpRequest(url, reqParam)
+}
+
+export function switchMatrixToRemote(reqParam) {
+  const url = isProd ? '../api/confer/switchMatrixToRemote' : '/apis/api/confer/switchMatrixToRemote'
+  return httpRequest(url, reqParam)
+}
+
+export function recordConfig(reqParam) {
+  const url = isProd ? '../api/confer/recordOper' : '/apis/api/confer/recordOper'
+  return httpRequest(url, reqParam)
+}
+
 function httpRequest(url, reqParam) {
   return axios.post(url, qs.stringify(reqParam)).then((res) => {
     return Promise.resolve(res.data)

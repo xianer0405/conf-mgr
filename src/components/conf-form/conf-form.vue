@@ -83,7 +83,7 @@
 <script type='text/ecmascript-6'>
   import {uploadLoginLogo} from 'api/system'
   import Modal from 'base/modal/modal'
-  import {createConf} from 'api/conf'
+  import {createConf, switchMatrixToRemote, recordConfig} from 'api/conf'
   import {searchDevice} from 'api/device'
   import {getQueryString} from 'common/js/util'
 
@@ -149,9 +149,30 @@
             this.$refs.modal.info('创建转播成功!')
             this.$bus.$emit('confcount-refresh', this.confType)
             this.resetForm()
+            // 如果是多点会议，则将T100切换到远端输出
+            if (CONF_TYPES.MANY2MANY === parseInt(confReqParam.confType)) {
+              this._switchMatrixForMultiConf(deviceIds)
+            }
+            this._recordConfifg(deviceIds)
           } else {
             this.$refs.errorModal.error(res.msg || '创建转播失败!')
           }
+        })
+      },
+      _recordConfifg(deviceIds) {
+        recordConfig({deviceIds, cmd: 1}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
+        })
+      },
+      _switchMatrixForMultiConf(deviceIds) {
+        console.log('切换本地矩阵输出远端源')
+        console.log('deviceIds=' + deviceIds)
+        switchMatrixToRemote({deviceIds}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
         })
       },
       resetForm() {

@@ -19,6 +19,8 @@
 </template>
 
 <script type='text/ecmascript-6'>
+  import {loadThirdLinks} from 'api/sysconfig'
+
   export default {
     props: {
       confCounts: {
@@ -30,6 +32,8 @@
     },
     data() {
       return {
+        or1netLink: 'http://61.151.156.60:8400/kscc/',
+        mediasiteLink: 'http://172.16.108.118/Mediasite/Catalog/Full/3d9cbcd1db094cde8f029089ef18f21321',
         menuList: [ {
           path: '/create',
           text: '创建新转播',
@@ -64,14 +68,14 @@
           text: '录像管理',
           iconClass: 'icon-record',
           disabled: true,
-          linkUrl: 'http://www.baidu.com',
+          linkUrl: '',
           linkTitle: 'MediaSite系统'
         }, {
           path: '/link2or1/true',
           text: '连接OR1.NET',
           iconClass: 'icon-yun',
           disabled: true,
-          linkUrl: 'http://61.151.156.60:8400/kscc/',
+          linkUrl: '',
           linkTitle: 'OR1.NET系统'
         }
         ]
@@ -87,7 +91,22 @@
     methods: {
       selectItem(item) {
         this.$emit('routerChange', item)
+      },
+      _loadThirdLinks() {
+        loadThirdLinks().then((res) => {
+          console.log(res)
+          this.or1netLink = res.bizData.entity.or1netUrl
+          this.mediasiteLink = res.bizData.entity.mediasiteUrl
+          this.$set(this.menuList[5], 'linkUrl', this.mediasiteLink)
+          this.$set(this.menuList[6], 'linkUrl', this.or1netLink)
+          console.log(this.menuList)
+        }).catch((err) => {
+          console.log(err)
+        })
       }
+    },
+    created () {
+      this._loadThirdLinks()
     }
   }
 </script>

@@ -34,4 +34,30 @@ export function getQueryString(name) {
   return context == null || context === '' || context === 'undefined' ? '' : context
 }
 
+export function pathConvert(isProd, imagePath) {
+  console.log(imagePath)
+  if (!imagePath) {
+    return false
+  }
+  if (isProd) {
+    let domain = window.location.protocol + '//' + window.location.host
+    let pathname = window.location.pathname
+    pathname = pathname.slice(1)
+    let projectName = pathname.slice(0, pathname.indexOf('/'))
+    let content = imagePath.slice(imagePath.indexOf('attachment'))
+    let path = `${domain}/${projectName}/${content}?_=${Date.now()}`
+    console.log(path)
+    return path
+  } else {
+    let domain = window.location.protocol + '//' + window.location.host
+    let pathname = window.location.pathname
+    pathname = pathname.slice(1)
+    let projectName = pathname.slice(0, pathname.indexOf('/'))
+    let content = imagePath.slice(imagePath.indexOf('attachment'))
+    let path = `${domain}/${projectName}/${content}?_=${Date.now()}`
+    console.log(path)
+    return imagePath
+  }
+}
+
 export {types}

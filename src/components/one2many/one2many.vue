@@ -19,7 +19,7 @@
                         :title="soureMember.deviceName"
                         :kid="soureMember.id"
                         :showIcons="showIcons"
-                        :imageUrl="soureMember.attachment ? soureMember.attachment.fileUrl : defaultImageUrl"></image-view>
+                        :imageUrl="soureMember.attachment ? imagePathConvert(soureMember.attachment.fileUrl) : defaultImageUrl"></image-view>
           </div>
           <div class="conf-oper" @click.stop="openEndConfModal">
             <i class="icon icon-finish"></i>
@@ -35,7 +35,7 @@
                               :title="item.deviceName"
                               :kid="item.id" @iconClick="memberOper"
                               :showIcons="showIconsOfWatchers[index]"
-                              :imageUrl="item.attachment ? item.attachment.fileUrl :defaultImageUrl"></image-view>
+                              :imageUrl="item.attachment ? imagePathConvert(item.attachment.fileUrl) :defaultImageUrl"></image-view>
                 </div>
               </li>
             </ul>
@@ -67,10 +67,12 @@
   import ConfList from 'components/conf-list/conf-list'
   import ImageView from 'base/image-view/image-view'
   import AddMember from 'components/add-member/add-member'
-  import {loadConfs, volumeMute, endConf, deleteMember, addMembers} from 'api/conf'
+  import {loadConfs, volumeMute, endConf, deleteMember, addMembers, switchMatrixToLocal, recordConfig} from 'api/conf'
   import {loadDevices, loadDevicesVolumeState} from 'api/device'
-  import {IMAGE_ICONS} from 'common/js/config'
-  import {getQueryString} from 'common/js/util'
+  import {IMAGE_ICONS, env} from 'common/js/config'
+  import {getQueryString, pathConvert} from 'common/js/util'
+
+  const isProd = env === 'prod'
 
   const CONF_TYPE = 2
 
@@ -112,6 +114,9 @@
       }
     },
     methods: {
+      imagePathConvert(imagePath) {
+        return pathConvert(isProd, imagePath)
+      },
       addMembers(selectedMembers) {
         if (this.memberOperFlag) {
           return false
@@ -144,16 +149,34 @@
         this.$refs.endConfModal.show()
       },
       endConf() {
+        const deviceIds = this.confMemberIds.slice().join(',')
         const {confId, confType} = this.currConf
         endConf({confId, confType}).then((res) => {
           if (res.success) {
             this.$refs.tipModal.info('操作成功!')
             this._loadConfList()
             this._resetCurrConf()
+            this._switcchMatrixToLocal(deviceIds)
+            this._recordConfifg(deviceIds)
             this.$bus.$emit('conf-change', confId)
           } else {
             this.$refs.tipModal.info('失败成功!')
           }
+        })
+      },
+      _recordConfifg(deviceIds) {
+        recordConfig({deviceIds, cmd: 0}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
+        })
+      },
+      _switcchMatrixToLocal(deviceIds) {
+        console.log('切换本地矩阵输出本地源')
+        switchMatrixToLocal({deviceIds}).then((res) => {
+          console.log(res)
+        }).catch((err) => {
+          console.log(err)
         })
       },
       memberOper(operParam) {
@@ -204,6 +227,7 @@
             const updatedConf = res.bizData.entity
             that.confList[this.currIndex] = updatedConf
             this._refreshCurrConf(this.confList[this.currIndex])
+            this._switcchMatrixToLocal(confReq.deviceIds)
             that.$refs.modal.info('操作成功!')
           } else {
             that.$refs.modal.info('操作失败!')
