@@ -11,6 +11,9 @@
         <router-link key="3" to='/config/device' tag='li' class="menu-item">
           <span class="menu-text">设备设置</span>
         </router-link>
+        <router-link key="3" to='/config/rtmp' tag='li' class="menu-item">
+          <span class="menu-text">推流设置</span>
+        </router-link>
       </ul>
     </header>
     <div class="config-wrapper">

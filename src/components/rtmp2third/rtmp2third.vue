@@ -20,16 +20,24 @@
             <button class='btn push' type='button' @click.stop="pushRtmpStream(item, index)" v-html="item.state === 1 ? '推送中' : '推&nbsp;送'"></button>
             <button class='btn stop' v-if="item.state === 1" type='button' @click.stop="stopRtmpPush(item, index)">结&nbsp;束</button>
             <button class='btn stop disabled' v-else disabled="true" type='button' @click.stop="stopRtmpPush(item, index)">结&nbsp;束</button>
+            <button class='btn showQRCode' type='button' @click.stop="shareQRCode(item, index)">分&nbsp;享</button>
           </li>
         </ul>
       </div>
     </div>
+    <modal ref="shareModal" :autoHide="false" :modalType="2" :showHeader="false" :showBottom="false" :showIcon="false">
+      <div class="qrcode-wrapper">
+        <qrcode-vue className="qrcode" :size="160" :value="qrcodeVal"></qrcode-vue>
+        <span class="qrcode-text">{{qrCodeText}}</span>
+      </div>
+    </modal>
     <modal ref="modal">
     </modal>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import QrcodeVue from 'qrcode.vue';
   import Modal from 'base/modal/modal'
   import Loading from 'base/loading/loading'
   import DeviceUiList from 'base/device-ui-list/device-ui-list'
@@ -44,7 +52,10 @@
         deviceList: null,
         totalCount: 0,
         currentPageNum: 1,
-        rtmpList: []
+        rtmpList: [],
+        qrCodeText: '',
+        showQRCodeFlag: false,
+        qrcodeVal: ''
       }
     },
     methods: {
@@ -89,6 +100,12 @@
             this.$refs.modal.info('RTMP码流推送失败!')
           }
         })
+      },
+      shareQRCode(item, index) {
+        this.$refs.shareModal.show()
+        this.qrcodeVal = item.m3u8Url
+        this.qrCodeText = item.name
+        this.showQRCodeFlag = true
       },
       stopRtmpPush(item, index) {
         const cmd = 0
@@ -170,7 +187,8 @@
     components: {
       DeviceUiList,
       Modal,
-      Loading
+      Loading,
+      QrcodeVue
     }
   }
 </script>
@@ -179,6 +197,17 @@
   @import "~common/stylus/variable"
   @import '~common/stylus/mixin.styl'
 
+  .qrcode-wrapper
+    position: relative
+    padding-top: 10px
+    background: #fff
+    .qrcode-text
+      position: absolute
+      left: 0
+      bottom: -3px
+      width: 100%
+      line-height: 20px
+      color: #000
   .rtmp-to-third
     margin: 10px 0
     width: 100%

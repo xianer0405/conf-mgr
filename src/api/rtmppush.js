@@ -16,3 +16,10 @@ export function rtmpOper(param) {
     return Promise.resolve(res.data)
   })
 }
+
+export function updateRtmpConfig(param) {
+  const url = isProd ? '../api/rtmp/updateRtmpConfig' : '/apis/api/rtmp/updateRtmpConfig'
+  return axios.post(url, qs.stringify(param)).then((res) => {
+    return Promise.resolve(res.data)
+  })
+}

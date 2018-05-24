@@ -10,6 +10,7 @@ import SysuserList from 'components/sysuser-list/sysuser-list'
 import AreaConfig from 'components/area-config/area-config'
 import NullView from 'base/null-view/null-view'
 import Rtmp2third from 'components/rtmp2third/rtmp2third'
+import RtmpConfig from 'components/rtmp-config/rtmp-config'
 
 Vue.use(Router)
 
@@ -63,6 +64,10 @@ export default new Router({
         {
           path: '/config/device',
           component: DeviceList
+        },
+        {
+          path: '/config/rtmp',
+          component: RtmpConfig
         }
       ]
     }
